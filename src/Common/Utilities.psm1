@@ -1,19 +1,6 @@
 ﻿# Subtle Powershell Utility functions
 # By: Christian Gunderman
 
-function Get-ContainsElement($haystack, $needle)
-{
-    foreach ($needle in $haystack)
-    {
-        if ($item -ieq $needle)
-        {
-            return $true
-        }
-    }
-
-    return $false
-}
-
 function Wait-ForAnyKey
 {
     Write-Host -ForegroundColor Yellow "Press any key to continue..."
@@ -31,4 +18,14 @@ function Set-ItemsHiddenAndReadonly($path)
     # Hide and set install items to read only.
     Set-FileHiddenAndReadonly (Get-Item $path)
     (Get-ChildItem -Recurse $path) | foreach { Set-FileHiddenAndReadonly $_ }
+}
+
+function Write-VersionInfo
+{
+    $version = (Get-ConfigurationValue "Version")
+
+    Clear-Host
+    Write-Host -ForegroundColor Cyan "PowerShell REPL + Tools $version"
+    Write-host "By: Christian Gunderman"
+    Write-Host
 }

@@ -7,7 +7,7 @@ Import-Module (Join-Path (Get-ClownCarDirectory) "Common\Utilities.psm1")
 $ExitCommand = "Exit"
 $PowerShellCommand = "powershell.exe"
 $StandaloneInstallerName = "StandAloneInstaller.bat"
-$StartupFile = "PackageMain.ps1"
+$StartupFile = "PackageMain.bat"
 
 function Get-InstallationPath
 {
@@ -25,8 +25,8 @@ function Install-Tools
     function Start-MainProcess($packagePath)
     {
         # Start script in this console.
-        Set-Location $packagePath
-        & ".\PackageMain.ps1"
+        $packageMain = (Join-Path $packagePath $StartupFile)
+        & $packageMain
         Return
     }
 
@@ -60,7 +60,7 @@ function Install-Tools
 
             # Start main process...
             Write-Host "Starting main process..."
-            Start-MainProcess (Join-Path $installationPath $StartupFile)
+            Start-MainProcess $installationPath
 
             Write-Host -ForegroundColor Green "`nInstall completed"
         }
@@ -110,12 +110,7 @@ function Exit-ToolsInstaller
 
 function ConsoleLoop
 {
-    $version = (Get-ConfigurationValue "Version")
-
-    Clear-Host
-    Write-Host -ForegroundColor Cyan "PowerShell REPL + Tools $version"
-    Write-host "By: Christian Gunderman"
-    Write-Host
+    Write-VersionInfo
 
     if (Are-ToolsInstalled)
     {

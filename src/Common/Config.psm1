@@ -9,6 +9,7 @@ function New-InstallationPath
 
 $ConfigurationValues =
 @{
+    "ClearOnStart" = $true
     "DisableConsole" = $false
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
@@ -46,11 +47,11 @@ function Get-ConfigurationValue($key)
 
     if ($regValue -ne $null)
     {
-        Write-Host "Registry Option" $key $regValue
+        Write-Host "Registry Option -> " $key $regValue
         return $regValue
     }
 
-    Write-Host "Default Option " $key = $ConfigurationValues[$key]
+    Write-Host "Default Option -> " $key = $ConfigurationValues[$key]
 
     return $ConfigurationValues[$key]
 }
