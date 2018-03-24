@@ -9,11 +9,9 @@ function New-InstallationPath
 
 $ConfigurationValues =
 @{
-    "ClearOnStart" = $true
     "DisableConsole" = $false
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "IsDebugModeEnabled" = $true
     "Version" = "0.01"
 }
 
