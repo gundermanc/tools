@@ -1,0 +1,3 @@
+[submodule "external/clown-car"]
+	path = external/clown-car
+	url = https://github.com/gundermanc/clown-car.git
