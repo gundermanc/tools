@@ -6,12 +6,18 @@ Import-Module (Join-Path (Get-ClownCarDirectory) "Common\Utilities.psm1")
 
 $ExitCommand = "Exit"
 $PowerShellCommand = "powershell.exe"
+$ShortcutName = "Tools.lnk"
 $StandaloneInstallerName = "StandAloneInstaller.bat"
 $StartupFile = "PackageMain.bat"
 
 function Get-InstallationPath
 {
     return (Get-ConfigurationValue "InstallationPath")
+}
+
+function Get-StartupPath
+{
+    return (Join-Path (Get-InstallationPath) $StartupFile)
 }
 
 function Are-ToolsInstalled
@@ -22,11 +28,10 @@ function Are-ToolsInstalled
 
 function Install-Tools
 {
-    function Start-MainProcess($packagePath)
+    function Start-MainProcess
     {
         # Start script in this console.
-        $packageMain = (Join-Path $packagePath $StartupFile)
-        & $packageMain
+        & (Get-StartupPath)
         Return
     }
 
@@ -58,11 +63,17 @@ function Install-Tools
             Write-Host "Protecting installation directory..."
             Set-ItemsHiddenAndReadonly $installationPath
 
+            # Create shortcut on the desktop and start menu.
+            Write-Host "Creating shortcut..."
+            $startupPath = (Get-StartupPath)
+            New-Shortcut  $startupPath (Join-Path (Get-DesktopPath) $ShortcutName)
+            New-Shortcut  $startupPath (Join-Path (Get-StartMenuPath) $ShortcutName)
+
+            Write-Host -ForegroundColor Green "`nInstall completed"
+
             # Start main process...
             Write-Host "Starting main process..."
             Start-MainProcess $installationPath
-
-            Write-Host -ForegroundColor Green "`nInstall completed"
         }
         else
         {
@@ -94,6 +105,10 @@ function Uninstall-Tools
 
         # Delete registry keys.
         Remove-ConfigurationValues
+
+        # Delete shortcuts.
+        Remove-Item -Force (Join-Path (Get-DesktopPath) $ShortcutName) -ErrorAction Continue
+        Remove-Item -Force (Join-Path (Get-StartMenuPath) $ShortcutName) -ErrorAction Continue
 
         Write-Host -ForegroundColor Green "Uninstallation completed"
     }

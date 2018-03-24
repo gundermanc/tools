@@ -29,3 +29,23 @@ function Write-VersionInfo
     Write-host "By: Christian Gunderman"
     Write-Host
 }
+
+function Get-DesktopPath
+{
+    return [Environment]::GetFolderPath("Desktop")
+}
+
+function Get-StartMenuPath
+{
+    return [Environment]::GetFolderPath("StartMenu")
+}
+
+
+function New-Shortcut($targetFilePath, $shortcutPath)
+{
+    Write-Host "Creating shortcut $shortcutPath -> $targetFilePath"
+    $wscriptShell = New-Object -ComObject WScript.Shell
+    $shortcut = $wscriptShell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = $targetFilePath
+    $shortcut.Save()
+}
