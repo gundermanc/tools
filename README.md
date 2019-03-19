@@ -13,7 +13,7 @@ tools archive that contains a number of useful scripts and aliases.
 
 ## 'Installing'
 Installation extracts tools to your user directory and creates a shortcut on the desktop
-and the Start Menu.
+and the Start Menu as well as registering a 'tools' command to your user path.
 - Run 'StandaloneInstaller.bat'
 - Run Install-Tools
 
