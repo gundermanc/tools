@@ -23,6 +23,14 @@ Aliases for finding files and text:
 - findp [path]: Searches subdirectory for paths containing [path].
 - findif [text]: Searches subdirectory for files containing [text].
 
+### MSBuild
+Defines some aliases for MSBuild as well as a clickable GUI error list
+that makes navigating MSBuild spew more pleasant.
+- msbbuild: Build with typical settings
+- msbebuild: Build with typical settings and pipe the output into a GUI error list.
+- msbclean: Clean project
+- msbrestore: Perform Nuget restore.
+
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
@@ -42,4 +50,4 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vscmd [instance]: Launches developer command prompt for a specific VS.
 
 ## ChangeLog
-- 3/18/2019 - Added Process Snapshot and Visual Studio Tools and README and eliminated REPL.
+- 3/18/2019 - Added many tools and README.

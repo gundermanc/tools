@@ -3,6 +3,9 @@
 
 $Global:PSScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
+# Record feature directory for scripts.
+$Global:FeatureDir = "$Global:PSScriptRoot\Features"
+
 Import-Module "$Global:PSScriptRoot\Common\Config.psm1"
 Import-Module "$Global:PSScriptRoot\Common\Componentization.psm1"
 Import-Module "$Global:PSScriptRoot\Common\Utilities.psm1"
