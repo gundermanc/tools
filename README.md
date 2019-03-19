@@ -18,6 +18,11 @@ and the Start Menu.
 - Run Install-Tools
 
 ## Tools
+### Find
+Aliases for finding files and text:
+- findp [path]: Searches subdirectory for paths containing [path].
+- findif [text]: Searches subdirectory for files containing [text].
+
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
