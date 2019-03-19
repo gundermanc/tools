@@ -165,6 +165,6 @@ function Main
     }
     else
     {
-        Install-Subtle
+        Install-Tools
     }
 }

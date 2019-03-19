@@ -1,4 +1,4 @@
-﻿# Subtle Powershell Utility functions
+﻿# Tools Powershell Utility functions
 # By: Christian Gunderman
 
 function Wait-ForAnyKey
@@ -39,7 +39,6 @@ function Get-StartMenuPath
 {
     return [Environment]::GetFolderPath("StartMenu")
 }
-
 
 function New-Shortcut($targetFilePath, $shortcutPath)
 {

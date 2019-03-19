@@ -1,4 +1,4 @@
-# Subtle Powershell Configuration
+# Tools Powershell Configuration
 # By: Christian Gunderman
 
 function New-InstallationPath
@@ -15,7 +15,7 @@ $ConfigurationValues =
     "Version" = "0.01"
 }
 
-$RegistryRootKeyPath = "HKCU:Software\Subtle"
+$RegistryRootKeyPath = "HKCU:Software\Tools"
 
 function Get-ConfigurationValueInRegistry($name)
 {

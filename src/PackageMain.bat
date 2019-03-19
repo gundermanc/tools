@@ -4,4 +4,4 @@
 :: By: Christian Gunderman
 
 :: Run our powershell entry point.
-powershell.exe -ExecutionPolicy Bypass "& '%~dp0\PackageMain.ps1'"
+powershell.exe -NoExit -ExecutionPolicy Bypass "& '%~dp0\PackageMain.ps1'"
