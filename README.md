@@ -11,6 +11,12 @@ tools archive that contains a number of useful scripts and aliases.
 - Run Build.cmd
 - Build produces 'StandaloneInstaller.bat' with packaged scripts.
 
+## 'Installing'
+Installation extracts tools to your user directory and creates a shortcut on the desktop
+and the Start Menu.
+- Run 'StandaloneInstaller.bat'
+- Run Install-Tools
+
 ## Tools
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
