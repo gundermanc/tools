@@ -8,7 +8,7 @@ $ExitCommand = "Exit"
 $PowerShellCommand = "powershell.exe"
 $ShortcutName = "Tools.lnk"
 $StandaloneInstallerName = "StandAloneInstaller.bat"
-$StartupFile = "PackageMain.bat"
+$StartupFile = "Tools.bat"
 
 function Get-InstallationPath
 {
@@ -69,6 +69,11 @@ function Install-Tools
             New-Shortcut  $startupPath (Join-Path (Get-DesktopPath) $ShortcutName)
             New-Shortcut  $startupPath (Join-Path (Get-StartMenuPath) $ShortcutName)
 
+            # Add tools to system path.
+            Write-Host "Adding 'tools' to user's path..."
+            $path = [Environment]::GetEnvironmentVariable("PATH")
+            [Environment]::SetEnvironmentVariable("PATH", "$path;$installationPath", [EnvironmentVariableTarget]::User);
+
             Write-Host -ForegroundColor Green "`nInstall completed"
 
             # Start main process...
@@ -109,6 +114,11 @@ function Uninstall-Tools
         # Delete shortcuts.
         Remove-Item -Force (Join-Path (Get-DesktopPath) $ShortcutName) -ErrorAction Continue
         Remove-Item -Force (Join-Path (Get-StartMenuPath) $ShortcutName) -ErrorAction Continue
+
+        # Remove tools from system path.
+        Write-Host "Removing 'tools' from user's path..."
+        $path = [Environment]::GetEnvironmentVariable("PATH")
+        [Environment]::SetEnvironmentVariable("PATH", $path.Replace(";$installationPath", ""), [EnvironmentVariableTarget]::User);
 
         Write-Host -ForegroundColor Green "Uninstallation completed"
     }
