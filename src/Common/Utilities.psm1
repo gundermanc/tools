@@ -24,7 +24,6 @@ function Write-VersionInfo
 {
     $version = (Get-ConfigurationValue "Version")
 
-    Clear-Host
     Write-Host -ForegroundColor Cyan "PowerShell REPL + Tools $version"
     Write-host "By: Christian Gunderman"
     Write-Host

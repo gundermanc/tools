@@ -21,12 +21,20 @@ and the Start Menu.
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
-
 - pbget: Gets a list of Process Baseline profiles that you have saved.
 - pbnew [profile]: Dumps all active processes to a named profile or 'Default' profile if not specified.
 - pbnstop [profile]: Stops all executables except those reference by the given profile or 'Default' profile if not specified.
 - pbstop [profile]: Stops all executables referenced by the given profile or 'Default' profile if not specified.
 - pbedit [profile]: Opens a named profile for manual editing.
 
+### Visual Studio
+Aliases for launching Visual Studio installs developer command prompts.
+- vsget: Lists all VS installs and their [instance] number.
+- vsstart [instance]: Starts a specific VS instance by its number.
+- vsreset [instance]: Wipes a specific VS instance by its number.
+- vsconfig [instance]: Updates configuration timestamp on a specific VS.
+- vspath [instance]: Opens installation path on a specific VS.
+- vscmd [instance]: Launches developer command prompt for a specific VS.
+
 ## ChangeLog
-- 3/18/2019 - Added Process Snapshot Tools and README and eliminated REPL.
+- 3/18/2019 - Added Process Snapshot and Visual Studio Tools and README and eliminated REPL.
