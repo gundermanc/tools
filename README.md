@@ -31,6 +31,16 @@ that makes navigating MSBuild spew more pleasant.
 - msbclean: Clean project
 - msbrestore: Perform Nuget restore.
 
+### Patching applications
+Defines some simple commands for backing up, patching, and restoring
+installed applications based on a configuration file. Use with Visual Studio
+'vspatch' command to patch a VS install.
+- ptedit [profile]: Opens the selected profile for editing.
+- ptget [profile]: Gets a list of profiles.
+- ptapply [profile]: Applies the selected profile.
+- ptstatus [profile]: Checks the current target application for patched files.
+- ptrevert [profile]: Reverts the current profile's patched binaries.
+
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
@@ -48,6 +58,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vsconfig [instance]: Updates configuration timestamp on a specific VS.
 - vspath [instance]: Opens installation path on a specific VS.
 - vscmd [instance]: Launches developer command prompt for a specific VS.
+- vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
 - 3/18/2019 - Added many tools and README.

@@ -158,9 +158,36 @@ function Start-VSInstanceAppData($instance)
     }
 }
 
+# Sets patch path to a VS install directory based on its number.
+function Set-VSPatchTarget($instance)
+{
+    if ([string]::IsNullOrWhiteSpace($instance))
+    {
+        $instance = 1
+    }
+
+    $output = Start-VSWhere
+
+    $i = 1
+    foreach ($line in $output)
+    {
+        if ($line.StartsWith("installationPath: "))
+        {
+            if ($i -eq $instance)
+            {
+                $env:PatchTargetDir = $line.Substring("installationPath: ".Length).Trim()
+                return
+            }
+            $i++
+        }
+    }
+}
+
+
 New-Alias -Name vsget -Value Get-VSInstances
 New-Alias -Name vsstart -Value Start-VSInstance
 New-Alias -Name vsreset -Value Reset-VSInstance
 New-Alias -Name vsconfig -Value Configure-VSInstance
 New-Alias -Name vspath -Value Start-VSInstancePath
 New-Alias -Name vscmd -Value Start-VSInstancePrompt
+New-Alias -Name vspatch -Value Set-VSPatchTarget
