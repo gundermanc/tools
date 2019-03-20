@@ -43,7 +43,7 @@ function Get-VSInstances
 }
 
 # Starts a VS instance by its number with the specified arguments.
-function Start-VSInstance($instance, $arguments)
+function Start-VSInstanceInternal($instance, $wait, $arguments)
 {
     if ([string]::IsNullOrWhiteSpace($instance))
     {
@@ -59,7 +59,32 @@ function Start-VSInstance($instance, $arguments)
         {
             if ($i -eq $instance)
             {
-                & $line.Substring("productPath: ".Length).Trim() $arguments
+                # There's undoubtedly a better way to do this but figuring out
+                # what's going on when creating an array of arguments in Powershell's
+                # type-ambiguous world is massive pain. </rant>
+                $devenvPath = $line.Substring("productPath: ".Length).Trim()
+                if ($arguments -eq $null)
+                {
+                    if ($wait)
+                    {
+                        Start-Process -FilePath $devenvPath -Wait
+                    }
+                    else
+                    {
+                        Start-Process -FilePath $devenvPath
+                    }
+                }
+                else
+                {
+                    if ($wait)
+                    {
+                        Start-Process -FilePath $devenvPath -ArgumentList $arguments -Wait
+                    }
+                    else
+                    {
+                        Start-Process -FilePath $devenvPath -ArgumentList $arguments
+                    }
+                }
                 return
             }
             $i++
@@ -67,14 +92,20 @@ function Start-VSInstance($instance, $arguments)
     }
 }
 
+# Starts a VS instance by its number with the specified arguments.
+function Start-VSInstance($instance, $arguments)
+{
+    Start-VSInstanceInternal $instance $false $arguments
+}
+
 function Reset-VSInstance($instance)
 {
-    Start-VSInstance $instance /resetuserdata
+    Start-VSInstanceInternal $instance $true /resetuserdata
 }
 
 function Configure-VSInstance($instance)
 {
-    Start-VSInstance $instance /updateconfiguration
+    Start-VSInstanceInternal $instance $true /updateconfiguration
 }
 
 # Starts a VS instance's installation path by its number.
@@ -104,34 +135,6 @@ function Start-VSInstancePath($instance)
 
 # Starts a VS instance's dev prompt by its number.
 function Start-VSInstancePrompt($instance)
-{
-    if ([string]::IsNullOrWhiteSpace($instance))
-    {
-        $instance = 1
-    }
-
-    $output = Start-VSWhere
-
-    $i = 1
-    foreach ($line in $output)
-    {
-        if ($line.StartsWith("installationPath: "))
-        {
-            if ($i -eq $instance)
-            {
-                $installationPath = $line.Substring("installationPath: ".Length).Trim()
-
-                Write-Host -Foreground Yellow "Importing Developer Command Prompt environment...`n`n"
-                & "$installationPath\Common7\Tools\VsDevCmd.bat"
-                return
-            }
-            $i++
-        }
-    }
-}
-
-# Starts a VS instance's dev prompt by its number.
-function Start-VSInstanceAppData($instance)
 {
     if ([string]::IsNullOrWhiteSpace($instance))
     {
