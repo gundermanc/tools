@@ -11,7 +11,8 @@ Import-Module "$Global:PSScriptRoot\Common\Componentization.psm1"
 Import-Module "$Global:PSScriptRoot\Common\Utilities.psm1"
 
 # Make a scratch directory for storing local preferences and tool output.
-$Global:ScratchDir = "$Global:PSScriptRoot\Scratch"
+# This is stored one level up from the install directory so that it persists.
+$Global:ScratchDir = "$Global:PSScriptRoot\..\ToolsScratch"
 Write-Host "Scratch directory is at `"$Global:ScratchDir`""
 New-Item -ItemType Directory -Path $Global:ScratchDir -ErrorAction SilentlyContinue | Out-Null
 
