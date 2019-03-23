@@ -81,10 +81,14 @@ function Invoke-PatchProfile($patchProfile)
         {
             $sourceFile = (Join-Path $sourceDirectory $property.Name)
             $destinationFile = (Join-Path $destinationDirectory $property.Value)
+            $backupFile = "$destinationFile.stockrevision"
 
-            # Create backup file.
-            Write-Host "  - Creating backup of $destinationFile..."
-            Copy-Item -Path $destinationFile -Destination "$destinationFile.stockrevision" -Force
+            # Create backup file if this is the first time patching this file.
+            if (-not (Test-Path $backupFile))
+            {
+                Write-Host "  - Creating backup of $destinationFile..."
+                Copy-Item -Path $destinationFile -Destination $backupFile -Force
+            }
 
             # Copy new file.
             Write-Host "  - Patching $sourceFile with $destinationFile..."
