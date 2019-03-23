@@ -61,6 +61,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 3/23/2019 - Fix revert when patch is run multiple times.
 - 3/20/2019 - Wait for VS config tasks to complete and store scratch outside of install directory.
 - 3/19/2019 - Added patching aliases.
 - 3/18/2019 - Added many tools and README.
