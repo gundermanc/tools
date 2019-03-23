@@ -50,6 +50,14 @@ to help get you unblocked if a build executable is locking a file.
 - pbstop [profile]: Stops all executables referenced by the given profile or 'Default' profile if not specified.
 - pbedit [profile]: Opens a named profile for manual editing.
 
+### Navigation aliases
+Defines aliases for navigating and opening explorer in named paths.
+- nvedit: Opens the list of aliases for editing.
+- nvget: Lists all defined aliases.
+- nvgo: `cd`s to the given alias or prompts you to define it if undefined.
+- nvnew: Defines or redefines an alias.
+- nve: Launches a named location in file explorer.
+
 ### Visual Studio
 Aliases for launching Visual Studio installs developer command prompts.
 - vsget: Lists all VS installs and their [instance] number.
@@ -61,7 +69,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
-- 3/23/2019 - Fix revert when patch is run multiple times.
+- 3/23/2019 - Fix revert when patch is run multiple times and add navigation aliases.
 - 3/20/2019 - Wait for VS config tasks to complete and store scratch outside of install directory.
 - 3/19/2019 - Added patching aliases.
 - 3/18/2019 - Added many tools and README.
