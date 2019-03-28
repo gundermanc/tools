@@ -8,6 +8,7 @@ tools archive that contains a number of useful scripts and aliases.
 
 ## 'Building'
 - Clone the repository recursively
+- Update submodules
 - Run Build.cmd
 - Build produces 'StandaloneInstaller.bat' with packaged scripts.
 
