@@ -39,7 +39,11 @@ that makes navigating MSBuild spew more pleasant.
 
 ### Patching applications
 Defines some simple commands for backing up, patching, and restoring
-installed applications based on a configuration file. Use with Visual Studio
+installed applications based on a configuration file. This script features
+automatic killing of locking processes as well as hash-verification, ensuring
+that patch and revert are reliable.
+
+Use with Visual Studio
 'vspatch' command to patch a VS install.
 - ptedit [profile]: Opens the selected profile for editing.
 - ptget [profile]: Gets a list of profiles.
@@ -75,7 +79,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
-- 4/5/2019  - Kills processes locking files during patch operation and less likely to accidentally delete backups.
+- 4/5/2019  - Kills processes locking files during patch operation, verified hashes on restore, and less likely to accidentally delete backups on exception.
 - 3/23/2019 - Fix revert when patch is run multiple times and add navigation aliases.
 - 3/20/2019 - Wait for VS config tasks to complete and store scratch outside of install directory.
 - 3/19/2019 - Added patching aliases.

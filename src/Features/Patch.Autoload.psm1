@@ -211,21 +211,73 @@ function Get-PatchProfiles
     Get-ChildItem "$Global:ScratchDir\*.patchprofile"
 }
 
+function RevertItem($destinationFile)
+{
+    $stockRevisionFile = "$destinationFile.stockrevision"
+    $updateHashFile = "$destinationFile.updatehash"
+
+    # Reverting backup file.
+    Write-Host "  - Reverting backup of $destinationFile..."
+    try
+    {
+        # If this file isn't patched, return success.
+        if (-not (Test-Path $stockRevisionFile))
+        {
+            return $true
+        }
+
+        # Ensure that the patched file hash matches the one we saved when we performed
+        # the patch. This eliminates the possibility that the application being updated
+        # could overwrite the patched bits and then be wiped out by 'reverting'.
+        $destinationHash = (Get-FileHash $destinationFile).Hash
+        if ($destinationHash -eq (Get-Content $updateHashFile))
+        {
+            Copy-Item -Path $stockRevisionFile -Destination $destinationFile -Force
+        }
+        else
+        {
+            Write-Host -ForegroundColor Yellow "Hash file mismatch. There appears to have been an update. Skipping $destinationFile"
+        }
+
+        Remove-Item -Path $stockRevisionFile -Force
+        Remove-Item -Path $updateHashFile -Force
+
+        return $true
+    }
+    catch
+    {
+        ## Do this in a try catch so a failure to revert doesn't cause backup to be deleted.
+        Write-Host "Failed reverting $destinationFile"
+        return $false
+    }
+}
+
 # Invokes a patch profile on a program install.
 function Invoke-PatchProfile($patchProfile)
 {
     function PatchItem ($sourceFile, $destinationFile)
     {
         $backupFile = "$destinationFile.stockrevision"
+        $hashFile = "$destinationFile.updatehash"
 
         try
         {
-            # Create backup file if this is the first time patching this file.
-            if (-not (Test-Path $backupFile))
+            # Item was backed up previously. Revert it.
+            # This is done to ensure that files that were updated
+            # and backed up again.
+            if (Test-Path $backupFile)
             {
-                Write-Host "  - Creating backup of $destinationFile..."
-                Copy-Item -Path $destinationFile -Destination $backupFile -Force
+                Write-Host "Previously patched. Reverting..."
+                RevertItem $destinationFile
             }
+
+            Write-Host "  - Creating backup of $destinationFile..."
+                Copy-Item -Path $destinationFile -Destination $backupFile -Force
+
+            # Save new file hash. This enables us to check before reverting
+            # so we don't accidentally 'revert' to the wrong bits if the
+            # product is updated and then the user tries to revert.
+            (Get-FileHash $sourceFile).Hash | Set-Content -Path $hashFile
 
             # Copy new file.
             Write-Host "  - Patching $sourceFile with $destinationFile..."
@@ -314,24 +366,6 @@ function Get-PatchStatus
 # Invokes a patch profile revert on a program install.
 function Invoke-RevertPatchProfile($patchProfile)
 {
-    function RevertItem($destinationFile)
-    {
-        # Reverting backup file.
-        Write-Host "  - Reverting backup of $destinationFile..."
-        try
-        {
-            Copy-Item -Path "$destinationFile.stockrevision" -Destination $destinationFile -Force
-            Remove-Item -Path "$destinationFile.stockrevision" -Force
-            return $true
-        }
-        catch
-        {
-            ## Do this in a try catch so a failure to revert doesn't cause backup to be deleted.
-            Write-Host "Failed reverting $destinationFile"
-            return $false
-        }
-    }
-
     $patchProfile = (Get-PatchProfilePath $patchProfile)
     $content = (Get-Content $patchProfile)
     $jsonContent = $content | ConvertFrom-Json
