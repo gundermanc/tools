@@ -13,6 +13,7 @@ It was originally created to improve productivity of developers building Visual 
 
 ## 'Building'
 - Clone the repository recursively
+- Update submodules
 - Run Build.cmd
 - Build produces 'StandaloneInstaller.bat' with packaged scripts.
 
