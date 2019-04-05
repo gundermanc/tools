@@ -1,10 +1,15 @@
-# PowerShell Tools Self Extractor
+# Windows Application Developer Tools
 (C) 2019 Christian Gunderman
 Contact Email: gundermanc@gmail.com
 
 ## Introduction:
 This repo is the current and future home of a self-extracting PowerShell
-tools archive that contains a number of useful scripts and aliases.
+tools archive that contains a number of useful scripts and aliases for developers
+of .NET applications on Windows. It attempts to solve a number of problems including
+improving the workflow for creating aliases, robust patching of installed applications,
+and easier invocation of MSBuild and Visual Studio.
+
+It was originally created to improve productivity of developers building Visual Studio. ❤
 
 ## 'Building'
 - Clone the repository recursively
