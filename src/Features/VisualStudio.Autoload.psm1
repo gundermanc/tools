@@ -179,6 +179,9 @@ function Set-VSPatchTarget($instance)
             if ($i -eq $instance)
             {
                 $env:PatchTargetDir = $line.Substring("installationPath: ".Length).Trim()
+
+                # TODO: make this part of the patch configuration instead.
+                $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
                 return
             }
             $i++

@@ -1,4 +1,6 @@
-# Application binary patching tool
+# Robust Application Patching utility.
+# Features profile configuration, patching, reverting, hash validation, and F5 debugging of profiles
+# without require projects to be modified.
 # By: Christian Gunderman
 
 $GetLockingProcessesCode = @"
@@ -397,8 +399,46 @@ function Invoke-RevertPatchProfile($patchProfile)
     }
 }
 
+# Opens a solution + patch profile in Visual Studio for F5 debugging.
+function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
+{
+    if ([string]::IsNullOrWhiteSpace($vsInstance) -or [string]::IsNullOrWhiteSpace($solutionPath) -or [string]::IsNullOrWhiteSpace($patchProfile))
+    {
+        Throw "Requires vsinstance, solution path, and patch profile name"
+    }
+
+    if (-not (Test-Path $solutionPath))
+    {
+        Throw "Unable to find solution at $solutionPath"
+    }
+
+    # Check that given patch profile exists. Should throw on error.
+    Get-PatchProfilePath($patchProfile)
+
+    # Check that the user has chosen a patch target directory first. Should throw on error.
+    Get-PatchTargetDirectory
+
+    # Set environment variables that will be read by Microsoft common targets.
+    # TODO: PatchTargetExe should be configurable in the profile.
+    $env:StartAction="Program"
+    $env:StartProgram=$env:PatchTargetExe
+    $env:PatchProfileName="search"
+
+    $powershellPath = (Join-Path $PsHome "powershell.exe")
+    $toolsPath = (Join-Path (Join-Path $Global:FeatureDir "..") "Tools.ps1")
+
+    # Inject post build event action into Visual Studio.
+    # Note: this may not work if props or targets imported before us makes use of this feature.
+    $env:RunPostBuildEvent="OnBuildSuccess"
+    $env:PostBuildEvent="$powershellPath -c $toolsPath;ptapply $patchProfile"
+
+    # Start selected Visual Studio instance.
+    vsstart $vsInstance $solutionPath
+}
+
 New-Alias -Name ptedit -Value Edit-PatchProfile
 New-Alias -Name ptget -Value Get-PatchProfiles
 New-Alias -Name ptapply -Value Invoke-PatchProfile
 New-Alias -Name ptstatus -Value Get-PatchStatus
 New-Alias -Name ptrevert -Value Invoke-RevertPatchProfile
+New-Alias -Name ptF5 -Value Start-F5InVS

@@ -7,7 +7,7 @@ This repo is the current and future home of a self-extracting PowerShell
 tools archive that contains a number of useful scripts and aliases for developers
 of .NET applications on Windows. It attempts to solve a number of problems including
 improving the workflow for creating aliases, robust patching of installed applications,
-and easier invocation of MSBuild and Visual Studio.
+F5 debugging of patched applications, and easier invocation of MSBuild and Visual Studio.
 
 It was originally created to improve productivity of developers building Visual Studio. ❤
 
@@ -41,7 +41,8 @@ that makes navigating MSBuild spew more pleasant.
 Defines some simple commands for backing up, patching, and restoring
 installed applications based on a configuration file. This script features
 automatic killing of locking processes as well as hash-verification, ensuring
-that patch and revert are reliable.
+that patch and revert are reliable. It has also experimental support for F5
+debugging any VS solution via patch profiles.
 
 Use with Visual Studio
 'vspatch' command to patch a VS install.
@@ -50,6 +51,7 @@ Use with Visual Studio
 - ptapply [profile]: Applies the selected profile.
 - ptstatus [profile]: Checks the current target application for patched files.
 - ptrevert [profile]: Reverts the current profile's patched binaries.
+- ptF5 [vsinstance] [solutionpath] [profile]: Launches the specified instance of VS with the specified solution + profile configured for one-click (F5) debugging.
 
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
@@ -79,7 +81,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
-- 4/5/2019  - Kills processes locking files during patch operation, verified hashes on restore, and less likely to accidentally delete backups on exception.
+- 4/5/2019  - Kills processes locking files during patch operation, verifies hashes on restore, less likely to accidentally delete backups on exception, and enables F5 debugging.
 - 3/23/2019 - Fix revert when patch is run multiple times and add navigation aliases.
 - 3/20/2019 - Wait for VS config tasks to complete and store scratch outside of install directory.
 - 3/19/2019 - Added patching aliases.
