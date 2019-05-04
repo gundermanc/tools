@@ -48,8 +48,25 @@ function New-Shortcut($targetFilePath, $shortcutPath)
     $shortcut.Save()
 }
 
-function PromptForUpdates
+function InstallUpdates
 {
+    function DownloadAndInstallUpdate($url) {
+        try
+        {
+            Write-Host -ForegroundColor Cyan Downloading update...
+            $client = New-Object system.net.WebClient
+            $updateFileName = [System.IO.Path]::GetTempFileName()
+            $updateFileName += ".bat"
+            $client.DownloadFile("$url", $updateFileName);
+
+            & $updateFileName
+            exit
+        }
+        catch
+        {
+            Write-Host -ForegroundColor Red "Failed to download update from $url"
+        }        
+    }
     Write-Host -ForegroundColor Cyan "Checking for updates..."
     $version = (Get-ConfigurationValue "Version")
     $result = (Invoke-RestMethod https://api.github.com/repos/gundermanc/tools/releases)
@@ -77,6 +94,8 @@ function PromptForUpdates
                 Write-Host
                 Write-Host Install link:  $latestRelease.html_url
                 Write-Host
+                Start-Sleep -Seconds 2
+                DownloadAndInstallUpdate($latestRelease.assets[0].browser_download_url)
             }
             else
             {

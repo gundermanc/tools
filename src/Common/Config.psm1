@@ -9,10 +9,10 @@ function New-InstallationPath
 
 $ConfigurationValues =
 @{
-    "DisableConsole" = $false
+    "DisableConsole" = $true
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "Version" = "0.2"
+    "Version" = "0.25"
 }
 
 $RegistryRootKeyPath = "HKCU:Software\Tools"

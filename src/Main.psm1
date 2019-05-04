@@ -39,52 +39,50 @@ function Install-Tools
     {
         $installationPath = Get-InstallationPath
 
-        if (-not (Are-ToolsInstalled $installationPath))
-        {
-            Write-Host "Installing to $installationPath`n"
-
-            # Record installation directory.
-            Write-Host "Saving installation directory..."
-            Set-ConfigurationValue "InstallationPath" $installationPath
-
-            # Copy package contents.
-            Write-Host "Copying package contents..."
-            Copy-Item -Recurse (Get-ClownCarDirectory) $installationPath
-
-            # We're done with the installer Entry script, delete it.
-            Write-Host "Deleting installer script."
-            Remove-Item (Join-Path $installationPath "Main.psm1")
-
-            # Copy the installer locally so that we have a copy of it.
-            Write-Host "Copying the installer to the installation..."
-            Copy-Item (Get-ClownCarScriptName) (Join-Path $installationPath $StandaloneInstallerName)
-
-            # Protect the install directory.
-            Write-Host "Protecting installation directory..."
-            Set-ItemsHiddenAndReadonly $installationPath
-
-            # Create shortcut on the desktop and start menu.
-            Write-Host "Creating shortcut..."
-            $startupPath = (Get-StartupPath)
-            New-Shortcut  $startupPath (Join-Path (Get-DesktopPath) $ShortcutName)
-            New-Shortcut  $startupPath (Join-Path (Get-StartMenuPath) $ShortcutName)
-
-            # Add tools to system path.
-            Write-Host "Adding 'tools' to user's path..."
-            $path = [Environment]::GetEnvironmentVariable("PATH")
-            [Environment]::SetEnvironmentVariable("PATH", "$path;$installationPath", [EnvironmentVariableTarget]::User);
-
-            Write-Host -ForegroundColor Green "`nInstall completed"
-
-            # Start main process...
-            Write-Host "Starting main process..."
-            Start-MainProcess $installationPath
-        }
-        else
+        if ((Are-ToolsInstalled $installationPath))
         {
             Write-Host -ForegroundColor Yellow "Already installed to $installationPath"
-            Write-Host -ForegroundColor Red "`nInstall failed"
+            Uninstall-Tools
         }
+
+        Write-Host "Installing to $installationPath`n"
+
+        # Record installation directory.
+        Write-Host "Saving installation directory..."
+        Set-ConfigurationValue "InstallationPath" $installationPath
+
+        # Copy package contents.
+        Write-Host "Copying package contents..."
+        Copy-Item -Recurse (Get-ClownCarDirectory) $installationPath
+
+        # We're done with the installer Entry script, delete it.
+        Write-Host "Deleting installer script."
+        Remove-Item (Join-Path $installationPath "Main.psm1")
+
+        # Copy the installer locally so that we have a copy of it.
+        Write-Host "Copying the installer to the installation..."
+        Copy-Item (Get-ClownCarScriptName) (Join-Path $installationPath $StandaloneInstallerName)
+
+        # Protect the install directory.
+        Write-Host "Protecting installation directory..."
+        Set-ItemsHiddenAndReadonly $installationPath
+
+        # Create shortcut on the desktop and start menu.
+        Write-Host "Creating shortcut..."
+        $startupPath = (Get-StartupPath)
+        New-Shortcut  $startupPath (Join-Path (Get-DesktopPath) $ShortcutName)
+        New-Shortcut  $startupPath (Join-Path (Get-StartMenuPath) $ShortcutName)
+
+        # Add tools to system path.
+        Write-Host "Adding 'tools' to user's path..."
+        $path = [Environment]::GetEnvironmentVariable("PATH")
+        [Environment]::SetEnvironmentVariable("PATH", "$path;$installationPath", [EnvironmentVariableTarget]::User);
+
+        Write-Host -ForegroundColor Green "`nInstall completed"
+
+        # Start main process...
+        Write-Host "Starting main process..."
+        Start-MainProcess $installationPath
     }
 
     Write-Host -ForegroundColor Cyan "Beginning installation...`n"

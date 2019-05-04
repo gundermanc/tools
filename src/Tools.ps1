@@ -18,4 +18,4 @@ Import-Module "$Global:PSScriptRoot\Common\Utilities.psm1"
 
 Write-VersionInfo
 
-PromptForUpdates
+InstallUpdates
