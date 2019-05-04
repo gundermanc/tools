@@ -222,6 +222,12 @@ function RevertItem($destinationFile)
     Write-Host "  - Reverting backup of $destinationFile..."
     try
     {
+        # Nothing to revert.
+        if (-not (Test-Path $updateHashFile))
+        {
+            return $true
+        }
+
         # Ensure that the patched file hash matches the one we saved when we performed
         # the patch. This eliminates the possibility that the application being updated
         # could overwrite the patched bits and then be wiped out by 'reverting'.
@@ -295,7 +301,7 @@ function Invoke-PatchProfile($patchProfile)
             (Get-FileHash $sourceFile).Hash | Set-Content -Path $hashFile
 
             # Copy new file.
-            Write-Host "  - Patching $sourceFile with $destinationFile..."
+            Write-Host "  - Patching $destinationFile with $sourceFile..."
             Copy-Item -Path $sourceFile -Destination $destinationFile -Force
 
             return $true
@@ -372,10 +378,10 @@ function Get-PatchStatus
 
     Write-Output "The following files have been patched:"
 
-    $stockRevisions = Get-ChildItem -Recurse (Join-Path $destinationDirectory "*.stockrevision")
-    foreach ($stockRevision in $stockRevisions)
+    $updatehashes = Get-ChildItem -Recurse (Join-Path $destinationDirectory "*.updatehash")
+    foreach ($updateHash in $updatehashes)
     {
-        $originalFileName = $stockRevision.Name.SubString(0, $stockRevision.Name.Length - ".stockrevision".Length)
+        $originalFileName = $updateHash.Name.SubString(0, $updateHash.Name.Length - ".updatehash".Length)
         Write-Host "  - $originalFileName"
     }
 }
