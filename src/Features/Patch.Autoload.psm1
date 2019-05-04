@@ -418,7 +418,13 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
     # Check that the user has chosen a patch target directory first. Should throw on error.
     Get-PatchTargetDirectory
 
-    # Set environment variables that will be read by Microsoft common targets.
+    # Record old values of env. variables so they can be reverted after VS is launched.
+    $oldStartAction=$env:StartAction
+    $oldStartProgram=$env:StartProgram
+    $oldPatchProfileName=$env:PatchProfileName
+    $oldPostBuildEvent = $env:PostBuildEvent
+
+    # Set environment variables that will be read by Microsoft common targets and perform the patch.
     # TODO: PatchTargetExe should be configurable in the profile.
     $env:StartAction="Program"
     $env:StartProgram=$env:PatchTargetExe
@@ -434,6 +440,12 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
 
     # Start selected Visual Studio instance.
     vsstart $vsInstance $solutionPath
+
+    # Revert env. variable settings so we don't patch on PostBuildEvent for command line builds.
+    $env:StartAction=$oldStartAction
+    $env:StartProgram=$oldStartProgram
+    $env:PatchProfileName=$oldPatchProfileName
+    $env:PostBuildEvent=$oldPostBuildEvent
 }
 
 New-Alias -Name ptedit -Value Edit-PatchProfile
