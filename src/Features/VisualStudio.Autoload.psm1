@@ -152,8 +152,10 @@ function Start-VSInstancePrompt($instance)
             {
                 $installationPath = $line.Substring("installationPath: ".Length).Trim()
 
-                Write-Host -Foreground Yellow "Importing Developer Command Prompt environment...`n`n"
-                & "$installationPath\Common7\Tools\VsDevCmd.bat"
+                Clear-Host
+
+                # Start a new session with both the dev prompt and tools environments.
+                & cmd.exe /K "`"$installationPath\Common7\Tools\VsDevCmd.bat`" & `"$Global:FeatureDir\..\Tools.bat`""
                 return
             }
             $i++
