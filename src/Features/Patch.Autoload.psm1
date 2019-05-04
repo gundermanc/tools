@@ -336,6 +336,7 @@ function Invoke-PatchProfile($patchProfile)
             if (-not (PatchItem $sourceFile $destinationFile))
             {
                 Stop-LockingApp $destinationFile
+                PatchItem $sourceFile $destinationFile
             }
         }
     }
