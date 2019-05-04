@@ -17,3 +17,5 @@ Import-Module "$Global:PSScriptRoot\Common\Componentization.psm1"
 Import-Module "$Global:PSScriptRoot\Common\Utilities.psm1"
 
 Write-VersionInfo
+
+PromptForUpdates

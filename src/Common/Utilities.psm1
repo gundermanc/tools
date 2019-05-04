@@ -47,3 +47,45 @@ function New-Shortcut($targetFilePath, $shortcutPath)
     $shortcut.TargetPath = $targetFilePath
     $shortcut.Save()
 }
+
+function PromptForUpdates
+{
+    Write-Host -ForegroundColor Cyan "Checking for updates..."
+    $version = (Get-ConfigurationValue "Version")
+    $result = (Invoke-RestMethod https://api.github.com/repos/gundermanc/tools/releases)
+
+    if ($result.Length -gt 0)
+    {
+        $latestRelease = $result[0]
+        if (![string]::IsNullOrWhiteSpace($latestRelease.tag_name))
+        {
+            $latestVersion = 0.0
+            try
+            {
+                $latestVersion = [float]::Parse($latestRelease.tag_name);
+            }
+            catch
+            {
+                Write-Host -ForegroundColor Yellow "Failed to decode latest release version number."
+            }
+
+            if ($latestVersion -gt [float]::Parse($version))
+            {
+                $releaseName = $latestRelease.name
+                Write-Host -ForegroundColor Yellow "`nUpdate available! ... $releaseName ... From $version to $latestVersion `n"
+                Write-Host $latestRelease.body
+                Write-Host
+                Write-Host Install link:  $latestRelease.html_url
+                Write-Host
+            }
+            else
+            {
+                Write-Host -ForegroundColor Green "Up to date!"
+            }
+
+            return
+        }
+    }
+
+    Write-Host -ForegroundColor Red "Check for updates failed."
+}
