@@ -103,7 +103,7 @@ function Reset-VSInstance($instance)
     Start-VSInstanceInternal $instance $true /resetuserdata
 }
 
-function Configure-VSInstance($instance)
+function ConfigureVSInstance($instance)
 {
     Start-VSInstanceInternal $instance $true /updateconfiguration
 }
@@ -195,7 +195,7 @@ function Set-VSPatchTarget($instance)
 New-Alias -Name vsget -Value Get-VSInstances
 New-Alias -Name vsstart -Value Start-VSInstance
 New-Alias -Name vsreset -Value Reset-VSInstance
-New-Alias -Name vsconfig -Value Configure-VSInstance
+New-Alias -Name vsconfig -Value ConfigureVSInstance
 New-Alias -Name vspath -Value Start-VSInstancePath
 New-Alias -Name vscmd -Value Start-VSInstancePrompt
 New-Alias -Name vspatch -Value Set-VSPatchTarget
