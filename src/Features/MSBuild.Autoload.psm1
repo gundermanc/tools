@@ -2,27 +2,27 @@
 # By: Christian Gunderman
 
 # Builds a project using typical settings.
-function Start-MSBuild
+function Start-MSBuild($project)
 {
-    & msbuild.exe /t:build /m
+    & msbuild.exe /r /t:build /m $project
 }
 
 # Builds a project with a clickable error list that launches in VS.
-function Start-MSBuildWithErrorList
+function Start-MSBuildWithErrorList($project)
 {
-    & msbuild.exe /t:build /m | & "$Global:FeatureDir\MSBuildErrorList.ps1"
+    & msbuild.exe /t:build /m $project | & "$Global:FeatureDir\MSBuildErrorList.ps1"
 }
 
 # Cleans a project.
-function Start-MSClean
+function Start-MSClean($project)
 {
-    & msbuild.exe /t:clean /m
+    & msbuild.exe /t:clean /m $project
 }
 
 # Restores a project.
-function Start-MSRestore
+function Start-MSRestore($project)
 {
-    & msbuild.exe /t:restore /m
+    & msbuild.exe /t:restore /m $project
 }
 
 New-Alias -Name msbbuild -Value Start-MSBuild
