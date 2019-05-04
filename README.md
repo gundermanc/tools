@@ -30,10 +30,9 @@ Aliases for finding files and text:
 - findif [text]: Searches subdirectory for files containing [text].
 
 ### MSBuild
-Defines some aliases for MSBuild as well as a clickable GUI error list
+Defines some aliases for MSBuild with a clickable GUI error list
 that makes navigating MSBuild spew more pleasant.
 - msbbuild: Build with typical settings
-- msbebuild: Build with typical settings and pipe the output into a GUI error list.
 - msbclean: Clean project
 - msbrestore: Perform Nuget restore.
 
@@ -83,6 +82,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 5/3/2019 - Fixed dev prompts, fixed some bugs with F5, improved patching reliability, aliases for listing processes locking a file.
 - 4/5/2019  - Kills processes locking files during patch operation, verifies hashes on restore, less likely to accidentally delete backups on exception, and enables F5 debugging.
 - 3/23/2019 - Fix revert when patch is run multiple times and add navigation aliases.
 - 3/20/2019 - Wait for VS config tasks to complete and store scratch outside of install directory.
