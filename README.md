@@ -56,6 +56,8 @@ Use with Visual Studio
 ### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
+- pbunlock [fileName]: Kills all processes that are locking a file.
+- pbldmp [profile] [fileName]: Dumps a list of all processes locking the given file into a profile.
 - pbget: Gets a list of Process Baseline profiles that you have saved.
 - pbnew [profile]: Dumps all active processes to a named profile or 'Default' profile if not specified.
 - pbnstop [profile]: Stops all executables except those reference by the given profile or 'Default' profile if not specified.
