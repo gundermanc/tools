@@ -88,12 +88,7 @@ function InstallUpdates
 
             if ($latestVersion -gt [float]::Parse($version))
             {
-                $releaseName = $latestRelease.name
                 Write-Host -ForegroundColor Yellow "`nUpdate available! ... $releaseName ... From $version to $latestVersion `n"
-                Write-Host $latestRelease.body
-                Write-Host
-                Write-Host Install link:  $latestRelease.html_url
-                Write-Host
                 Start-Sleep -Seconds 2
                 DownloadAndInstallUpdate($latestRelease.assets[0].browser_download_url)
             }
@@ -101,6 +96,13 @@ function InstallUpdates
             {
                 Write-Host -ForegroundColor Green "Up to date!"
             }
+
+            $releaseName = $latestRelease.name
+            Write-Host -ForegroundColor Yellow "`nCurrent Release $releaseName $version"
+            Write-Host $latestRelease.body
+            Write-Host
+            Write-Host Install link:  $latestRelease.html_url
+            Write-Host
 
             return
         }
