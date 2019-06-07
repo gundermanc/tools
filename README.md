@@ -23,6 +23,11 @@ and the Start Menu as well as registering a 'tools' command to your user path.
 - Run 'StandaloneInstaller.bat'
 - Run Install-Tools
 
+## Using
+Tools are in a special custom command prompt called the tools prompt which is added to your
+user path. You can enter this prompt in any command prompt by running `tools.bat` in a command
+prompt or `tools.ps1` in a Powershell session.
+
 ## Tools
 ### Find
 Aliases for finding files and text:
