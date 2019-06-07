@@ -82,7 +82,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
-- 6/7/2019 - Fixed killing of locking processes when doing revert. Fixed overwriting of backup when revert fails.
+- 6/7/2019 - Fixed killing of locking processes when doing revert. Fixed overwriting of backup when revert fails. Print release notes on startup. Init submodule on build.
 - 5/10/2019 - Add 'scratch' to default nav locations.
 - 5/4/2019 - Auto updater.
 - 5/3/2019 - Fixed dev prompts, fixed some bugs with F5, improved patching reliability, aliases for listing processes locking a file.
