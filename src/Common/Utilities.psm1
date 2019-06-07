@@ -98,7 +98,7 @@ function InstallUpdates
             }
 
             $releaseName = $latestRelease.name
-            Write-Host -ForegroundColor Yellow "`nCurrent Release $releaseName $version"
+            Write-Host -ForegroundColor Yellow "`nCurrent Release: $releaseName version $version"
             Write-Host $latestRelease.body
             Write-Host
             Write-Host Install link:  $latestRelease.html_url
