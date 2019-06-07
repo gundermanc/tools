@@ -1,4 +1,4 @@
-# Powershell REPL + Tools Installer Entry Point
+# Windows Application Developer Tools
 # By: Christian Gunderman
 
 Import-Module (Join-Path (Get-ClownCarDirectory) "Common\Config.psm1")

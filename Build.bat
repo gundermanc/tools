@@ -1,6 +1,6 @@
 @echo off
 
-:: Powershell REPL + Tools -> Installer Batch Script Self Extractor Build Script
+:: Windows Application Developer Tools -> Installer Batch Script Self Extractor Build Script
 :: By: Christian Gunderman
 
 git submodule init

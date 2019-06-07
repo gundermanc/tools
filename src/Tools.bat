@@ -1,6 +1,6 @@
 @echo off
 
-:: Powershell REPL + Tools Main
+:: Windows Application Developer Tools
 :: By: Christian Gunderman
 
 :: Run our powershell entry point.
