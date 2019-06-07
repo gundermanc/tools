@@ -126,7 +126,14 @@ function Invoke-PatchProfile($patchProfile)
             if (Test-Path $hashFile)
             {
                 Write-Host "Previously patched. Reverting..."
-                RevertItem $destinationFile
+                if (-not (RevertItem $destinationFile))
+                {
+                    Stop-LockingApp $destinationFile
+                    if (-not (RevertItem $destinationFile))
+                    {
+                        return $false
+                    }
+                }
             }
 
             if (Test-Path $destinationFile)
