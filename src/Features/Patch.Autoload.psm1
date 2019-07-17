@@ -32,14 +32,21 @@ function Write-PatchSchema
 Patch schema is as follows:"
 
 {
-    "sourceDirectory": "",
+    "sourceDirectory": "$env:GitRoot",
     "files": {
         "relative source path": "relative destination path"
     },
     "commands": [
-        "foo.exe"
+        "Start-Process foo.exe -Wait -ArgumentsList 'So Argumentative'"
     ]
 }
+
+sourceDirectory: a path, possibly with Powershell variables, to patch from.
+                 Try $env:GitRoot to copy relative to the repo root.
+
+files: a dictionary of source -> destination path. Can use environment variables.
+
+commands: an array of PowerShell commands to run after the patch and unpatch.
 
 "@
 }
@@ -166,12 +173,14 @@ function Invoke-PatchProfile($patchProfile)
         }
     }
 
+    Set-GitRoot
+
     $patchProfile = (Get-PatchProfilePath $patchProfile)
     $content = (Get-Content $patchProfile)
     $jsonContent = $content | ConvertFrom-Json
 
-    # Determine the source directory.
-    $sourceDirectory = $jsonContent.sourceDirectory
+    # Determine the source directory. Supports environment variables.
+    $sourceDirectory = $ExecutionContext.InvokeCommand.ExpandString($jsonContent.sourceDirectory)
     Write-Host "Source Directory: $sourceDirectory"
     if ([string]::IsNullOrWhiteSpace($sourceDirectory) -or (-not (Test-Path $sourceDirectory)))
     {
@@ -187,8 +196,8 @@ function Invoke-PatchProfile($patchProfile)
     {
         foreach ($property in $file.PSObject.Properties)
         {
-            $sourceFile = (Join-Path $sourceDirectory $property.Name)
-            $destinationFile = (Join-Path $destinationDirectory $property.Value)
+            $sourceFile = (Join-Path $sourceDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Name))
+            $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
             
             if (-not (PatchItem $sourceFile $destinationFile))
             {
@@ -201,6 +210,7 @@ function Invoke-PatchProfile($patchProfile)
     $commands = $jsonContent.commands
     foreach ($command in $commands)
     {
+        $command = $ExecutionContext.InvokeCommand.ExpandString($command)
         Write-Host "- Running > $command"
         Invoke-Expression $command
     }
@@ -208,6 +218,8 @@ function Invoke-PatchProfile($patchProfile)
 
 function Get-PatchStatus
 {
+    Set-GitRoot
+
     # Determine the destination directory.
     $destinationDirectory = Get-PatchTargetDirectory
     Write-Output "Destination Directory: $destinationDirectory"
@@ -225,6 +237,8 @@ function Get-PatchStatus
 # Invokes a patch profile revert on a program install.
 function Invoke-RevertPatchProfile($patchProfile)
 {
+    Set-GitRoot
+
     $patchProfile = (Get-PatchProfilePath $patchProfile)
     $content = (Get-Content $patchProfile)
     $jsonContent = $content | ConvertFrom-Json
@@ -238,7 +252,7 @@ function Invoke-RevertPatchProfile($patchProfile)
     {
         foreach ($property in $file.PSObject.Properties)
         {
-            $destinationFile = (Join-Path $destinationDirectory $property.Value)
+            $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
 
             if (-not (RevertItem $destinationFile))
             {
@@ -251,6 +265,7 @@ function Invoke-RevertPatchProfile($patchProfile)
     $commands = $jsonContent.commands
     foreach ($command in $commands)
     {
+        $command = $ExecutionContext.InvokeCommand.ExpandString($command)
         Write-Host "- Running > $command"
         Invoke-Expression $command
     }
@@ -264,10 +279,13 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
         Throw "Requires vsinstance, solution path, and patch profile name"
     }
 
+    $solutionPath = $ExecutionContext.InvokeCommand.ExpandString($solutionPath)
     if (-not (Test-Path $solutionPath))
     {
         Throw "Unable to find solution at $solutionPath"
     }
+
+    Set-GitRoot
 
     # Check that given patch profile exists. Should throw on error.
     Get-PatchProfilePath($patchProfile)
