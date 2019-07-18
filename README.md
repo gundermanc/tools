@@ -22,6 +22,10 @@ Auto-updates on subsequent usages.
 - Run Build.cmd
 - Build produces 'StandaloneInstaller.bat' with packaged scripts.
 
+#### Debugging
+- Clone repo
+- Run `src/Tools.bat` to test inline without installing. I recommend https://code.visualstudio.com/ with the PowerShell extension for editing.
+
 #### Configure Patching
 Patching can be used to update an installed VS or application with experimental bits. For robustness, patch
 makes backups of each file, takes a hash of the original files, and kills any lock processes,
