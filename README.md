@@ -140,6 +140,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 8/15/2019 - Install to consistent location. Can now uninstall with 'Uninstall-Tools' function. Fixed issue where we'd pollute the user's path.
 - 7/17/2019 - Support environment variables in patch paths and define $env:GitRoot for the root of the current repo.
 - 6/7/2019 - Fixed killing of locking processes when doing revert. Fixed overwriting of backup when revert fails. Print release notes on startup. Init submodule on build.
 - 5/10/2019 - Add 'scratch' to default nav locations.
