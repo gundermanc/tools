@@ -8,7 +8,12 @@ function Get-PatchProfilePath($patchProfile)
 {
     if ([string]::IsNullOrWhiteSpace($patchProfile))
     {
-        Throw "Must provide a patch profile name argument"
+        if ([string]::IsNullOrWhiteSpace($env:PatchProfile))
+        {
+            Throw "Must provide a patch profile name argument"
+        }
+
+        $patchProfile = $env:PatchProfile
     }
 
     return Join-Path $Global:ScratchDir "$patchProfile.patchprofile"
@@ -26,13 +31,56 @@ function Get-PatchTargetDirectory
     return $env:PatchTargetDir
 }
 
+function Get-PatchConfiguration($patchProfile)
+{
+    $patchProfile = (Get-PatchProfilePath $patchProfile)
+    $content = (Get-Content $patchProfile)
+    $jsonContent = $content | ConvertFrom-Json
+
+    # Define any given environment variables.
+    $variables = $jsonContent.variables
+    foreach ($file in $variables)
+    {
+        foreach ($property in $file.PSObject.Properties)
+        {
+            $name = [string]$property.Name
+            $value = [string]$ExecutionContext.InvokeCommand.ExpandString($property.Value)
+
+            if ([string]::IsNullOrEmpty($value))
+            {
+                Write-Host -ForegroundColor Yellow "Variable $name has empty value"
+            }
+
+            Write-Host "Setting variable $name to '$value'..."
+            Invoke-Expression "$name = `"$value`""
+        }
+    }
+
+    # Determine the source directory. Supports environment variables.
+    # This line here is for compat with existing profiles. New profiles should set a variable instead.
+    if ([string]::IsNullOrWhiteSpace($env:PatchSourceDir))
+    {
+        $env:PatchSourceDir = $ExecutionContext.InvokeCommand.ExpandString($jsonContent.sourceDirectory)
+    }
+
+    Write-Host "Source Directory: $env:PatchSourceDir"
+    if ([string]::IsNullOrWhiteSpace($env:PatchSourceDir) -or (-not (Test-Path $env:PatchSourceDir)))
+    {
+        Throw "Unspecified or inaccessible `$env:PatchSourceDir $env:PatchSourceDir"
+    }
+
+    return $jsonContent
+}
+
 function Write-PatchSchema
 {
     Write-Output @"
 Patch schema is as follows:"
 
 {
-    "sourceDirectory": "$env:GitRoot",
+    "variables": {
+        "`$env:EnvVariableName": "value"
+    },
     "files": {
         "relative source path": "relative destination path"
     },
@@ -41,10 +89,24 @@ Patch schema is as follows:"
     ]
 }
 
-sourceDirectory: a path, possibly with Powershell variables, to patch from.
-                 Try $env:GitRoot to copy relative to the repo root.
+variables: Strings that are expanded to PowerShell variables. Use `$env:Foo to
+           define environment variables, try `$env:GitRoot to create paths relative
+           to the repo root, and try `$env: to reference environment variables.
+           
+           The following are 'special' variables that light up aliases:
 
-files: a dictionary of source -> destination path. Can use environment variables.
+             `$env:PatchBuildCmd - The command to build with prior to patching.
+
+             `$env:PatchSourceDir - The source folder to copy bits from.
+
+             `$env:PatchTargetDir - The destination to patch to. You can optionally
+             set this with the vspath alias or your own script.
+
+             `$env:PatchTargetExe - The main executable of the application being
+           patched.
+
+files: a dictionary of source -> destination path that are backedup and patched.
+                                 Can use environment variables.
 
 commands: an array of PowerShell commands to run after the patch and unpatch.
 
@@ -175,17 +237,7 @@ function Invoke-PatchProfile($patchProfile)
 
     Set-GitRoot
 
-    $patchProfile = (Get-PatchProfilePath $patchProfile)
-    $content = (Get-Content $patchProfile)
-    $jsonContent = $content | ConvertFrom-Json
-
-    # Determine the source directory. Supports environment variables.
-    $sourceDirectory = $ExecutionContext.InvokeCommand.ExpandString($jsonContent.sourceDirectory)
-    Write-Host "Source Directory: $sourceDirectory"
-    if ([string]::IsNullOrWhiteSpace($sourceDirectory) -or (-not (Test-Path $sourceDirectory)))
-    {
-        Throw "Unspecified or inaccessible sourceDirectory $sourceDirectory"
-    }
+    $jsonContent = (Get-PatchConfiguration $patchProfile)
 
     # Determine the destination directory.
     $destinationDirectory = Get-PatchTargetDirectory
@@ -196,7 +248,7 @@ function Invoke-PatchProfile($patchProfile)
     {
         foreach ($property in $file.PSObject.Properties)
         {
-            $sourceFile = (Join-Path $sourceDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Name))
+            $sourceFile = (Join-Path $env:PatchSourceDir $ExecutionContext.InvokeCommand.ExpandString($property.Name))
             $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
             
             if (-not (PatchItem $sourceFile $destinationFile))
@@ -239,9 +291,7 @@ function Invoke-RevertPatchProfile($patchProfile)
 {
     Set-GitRoot
 
-    $patchProfile = (Get-PatchProfilePath $patchProfile)
-    $content = (Get-Content $patchProfile)
-    $jsonContent = $content | ConvertFrom-Json
+    $jsonContent = (Get-PatchConfiguration $patchProfile)
 
     # Determine the destination directory.
     $destinationDirectory = Get-PatchTargetDirectory
@@ -300,10 +350,9 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
     $oldPostBuildEvent = $env:PostBuildEvent
 
     # Set environment variables that will be read by Microsoft common targets and perform the patch.
-    # TODO: PatchTargetExe should be configurable in the profile.
     $env:StartAction="Program"
     $env:StartProgram=$env:PatchTargetExe
-    $env:PatchProfileName="search"
+    $env:PatchProfileName=$patchProfile
 
     $powershellPath = (Join-Path $PsHome "powershell.exe")
     $toolsPath = (Join-Path (Join-Path $Global:FeatureDir "..") "Tools.ps1")
@@ -323,9 +372,75 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
     $env:PostBuildEvent=$oldPostBuildEvent
 }
 
+# Invokes a patch profile build operation.
+function Invoke-BuildPatchProfile($patchProfile)
+{
+    Set-GitRoot
+
+    # Read in variables.
+    Get-PatchConfiguration $patchProfile | Out-Null
+
+    if ([string]::IsNullOrEmpty($env:PatchBuildCmd))
+    {
+        Throw "Must set `$env:PatchBuildCmd prior to using this alias. Consider setting it in your profile 'variables' section."
+    }
+
+    # Run the build command.
+    Invoke-Expression $env:PatchBuildCmd
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        Throw "Build failed"
+    }
+}
+
+# Invokes a patch profile target executable.
+function Invoke-RunPatchProfileTarget($patchProfile)
+{
+    Set-GitRoot
+
+    # Read in variables.
+    Get-PatchConfiguration $patchProfile | Out-Null
+
+    if ([string]::IsNullOrEmpty($env:PatchTargetExe))
+    {
+        Throw "Must set `$env:PatchTargetExe prior to using this alias. Consider using 'vspatch' or setting it in your profile 'variables' section."
+    }
+
+    # Run the target executable.
+    & $env:PatchTargetExe
+}
+
+# Builds, patches, and runs the target of a patch profile.
+function Invoke-BuildAndRunPatchProfile($patchProfile)
+{
+    # Build project.
+    Invoke-BuildPatchProfile $patchProfile
+
+    # Patch target.
+    Invoke-PatchProfile $patchProfile
+
+    # Run target.
+    Invoke-RunPatchProfileTarget $patchProfile
+}
+
+# Enables setting a current preferred patch profile.
+function Set-CurrentPatchProfile($patchProfile)
+{
+    # Ensure we have a profile of that name.
+    Get-PatchProfilePath $patchProfile | Out-Null
+
+    # Save it for later.
+    $env:PatchProfile = $patchProfile
+}
+
 New-Alias -Name ptedit -Value Edit-PatchProfile
 New-Alias -Name ptget -Value Get-PatchProfiles
 New-Alias -Name ptapply -Value Invoke-PatchProfile
 New-Alias -Name ptstatus -Value Get-PatchStatus
 New-Alias -Name ptrevert -Value Invoke-RevertPatchProfile
 New-Alias -Name ptF5 -Value Start-F5InVS
+New-Alias -Name ptbuild -Value Invoke-BuildPatchProfile
+New-Alias -Name ptrun -Value Invoke-RunPatchProfileTarget
+New-Alias -Name ptbuildrun -Value Invoke-BuildAndRunPatchProfile
+New-Alias -Name ptuse -Value Set-CurrentPatchProfile

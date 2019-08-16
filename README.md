@@ -46,16 +46,38 @@ Must first set `$env:PatchTargetDir` to directory you want to patch. Use `vspatc
 
 ```json
 {
-    "sourceDirectory": "directory to copy from",
+    "variables": {
+        "`$env:EnvVariableName": "value"
+    },
     "files": {
-
-        "relative path to source file": "relative path to destination file",
+        "relative source path": "relative destination path"
     },
     "commands": [
-        "Start-Process 'myproc.exe' -Wait -ArgumentList 'args'"
+        "Start-Process foo.exe -Wait -ArgumentsList 'So Argumentative'"
     ]
 }
 ```
+
+- variables: Strings that are expanded to PowerShell variables. Use `$env:Foo to
+  define environment variables, try `$env:GitRoot to create paths relative
+  to the repo root, and try `$env: to reference environment variables.
+
+  - The following are 'special' variables that light up aliases:
+
+    - `$env:PatchBuildCmd - The command to build with prior to patching.
+
+    - `$env:PatchSourceDir - The source folder to copy bits from.
+
+    - `$env:PatchTargetDir - The destination to patch to. You can optionally
+       set this with the vspath alias or your own script.
+
+    - `$env:PatchTargetExe - The main executable of the application being patched.
+
+- files: a dictionary of source -> destination path that are backedup and patched.
+  Can use environment variables.
+
+- commands: an array of PowerShell commands to run after the patch and unpatch.
+
 
 #### Start VS
 - Find VS instances with `vsget`
@@ -68,6 +90,14 @@ Must first set `$env:PatchTargetDir` to directory you want to patch. Use `vspatc
 - Patch your install using `ptapply [profile name]`. The originally installed files are backed up and can be restored at any time.
 - Check if your currently selected VS instance has been patched with `ptstatus`.
 - Unpatch a specific profile using `ptrevert [profile name]`.
+
+#### Inner Dev Loop
+- You can run the typical inner dev loop of build, deploy, run with:
+  - ptuse [profile name] - Chooses a profile to use for this PowerShell session. Enables you to not specify each time.
+  - ptbuild - builds the project with the command specified by $env:PatchBuildCmd
+  - ptrun - runs the target application in $env:PatchTargetExe
+  - ptbuildrun - builds, patches, and runs the target application using the commands in $env:PatchBuildCmd and 
+    $env:PatchTargetExe.
 
 #### F5 debug your project
 - Follow steps above for 'Configuring' your machine and profile.
@@ -109,6 +139,12 @@ Use with Visual Studio
 - ptstatus [profile]: Checks the current target application for patched files.
 - ptrevert [profile]: Reverts the current profile's patched binaries.
 - ptF5 [vsinstance] [solutionpath] [profile]: Launches the specified instance of VS with the specified solution + profile configured for one-click (F5) debugging.
+- ptbuild [profile]: Builds the project for the named profile using the command contained in $env:PatchBuildCmd. 
+- ptrun [profile]: Runs the target executable for the named profile using the command contained in $env:PatchTargetExe. 
+- ptbuildrun [profile]: Builds, patches, and runs using the $env:PatchBuildCmd and $env:PatchTargetExe variables.
+- ptuse [profile]: Indicates that this profile should be used for the duration of the PowerShell session. Run this once
+  and no longer need to specify the profile each build.
+
 
 #### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
@@ -140,7 +176,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
-- 8/15/2019 - Install to consistent location. Can now uninstall with 'Uninstall-Tools' function. Fixed issue where we'd pollute the user's path.
+- 8/15/2019 - Install to consistent location. Can now uninstall with 'Uninstall-Tools' function. Fixed issue where we'd pollute the user's path. Refined build, deploy, run workflow aliases.
 - 7/17/2019 - Support environment variables in patch paths and define $env:GitRoot for the root of the current repo.
 - 6/7/2019 - Fixed killing of locking processes when doing revert. Fixed overwriting of backup when revert fails. Print release notes on startup. Init submodule on build.
 - 5/10/2019 - Add 'scratch' to default nav locations.
