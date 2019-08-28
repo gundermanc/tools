@@ -99,6 +99,14 @@ Must first set `$env:PatchTargetDir` to directory you want to patch. Use `vspatc
   - ptbuildrun - builds, patches, and runs the target application using the commands in $env:PatchBuildCmd and 
     $env:PatchTargetExe.
 
+#### 'Buddy packs'
+Sometimes it's necessary to share pre-release bits with teammates, testers, build machines, etc. 'Buddy packs'
+are packaged versions of the patched bits in the form of a self-extracting batch script. Simply configure and
+ensure patching works and then run `ptpack [profile name]`. A `profile.patch.cmd` script will be created that
+can be shared with others or copied to other machines. Note that just like in the local scenario, buddy packs
+let you choose which VS to patch, check the status, backup changes, and even revert back to the original in a
+robust way.
+
 #### F5 debug your project
 - Follow steps above for 'Configuring' your machine and profile.
 - Ensure that 'Patch and Restore' from above work.
@@ -144,6 +152,7 @@ Use with Visual Studio
 - ptbuildrun [profile]: Builds, patches, and runs using the $env:PatchBuildCmd and $env:PatchTargetExe variables.
 - ptuse [profile]: Indicates that this profile should be used for the duration of the PowerShell session. Run this once
   and no longer need to specify the profile each build.
+- ptpack [profile]: Packs up the current contents of the selected profile into a self-extracting batch script that can be shared with others.
 
 
 #### Process Snapshot

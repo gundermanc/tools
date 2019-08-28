@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Files copied/generated during build.
+src\Common\clown-car-packager-api.psm1
+
 # User-specific files
 *.suo
 *.user

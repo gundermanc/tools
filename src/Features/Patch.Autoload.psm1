@@ -1,7 +1,9 @@
 # Robust Application Patching utility.
-# Features profile configuration, patching, reverting, hash validation, and F5 debugging of profiles
-# without require projects to be modified.
+# Features profile configuration, patching, reverting, hash validation, F5 debugging of profiles,
+# packaging of bits to share with others, etc... all without requiring projects to be modified.
 # By: Christian Gunderman
+
+Import-Module "$Global:CommonDir\clown-car-packager-api.psm1"
 
 # Gets a patch profile file path.
 function Get-PatchProfilePath($patchProfile)
@@ -24,8 +26,12 @@ function Get-PatchTargetDirectory
 {
     if ([string]::IsNullOrWhiteSpace($env:PatchTargetDir))
     {
-        Write-Host -ForegroundColor Yellow "For patching instances of VS, use vsget to find an instance, and vspatch to set it as the current."
-        Throw "Must define `$env:PatchTargetDir prior to patching."
+        Invoke-Expression $env:PatchTargetChooseCmd
+
+        if ([string]::IsNullOrWhiteSpace($env:PatchTargetDir))
+        {
+            Throw "Must specify `$env:PatchTargetDir or a `$env:PatchTargetChooseCmd that will set it when run"
+        }
     }
 
     return $env:PatchTargetDir
@@ -67,6 +73,13 @@ function Get-PatchConfiguration($patchProfile)
     if ([string]::IsNullOrWhiteSpace($env:PatchSourceDir) -or (-not (Test-Path $env:PatchSourceDir)))
     {
         Throw "Unspecified or inaccessible `$env:PatchSourceDir $env:PatchSourceDir"
+    }
+
+    # Ensure that either $env:PatchTargetDir is specified or $env:PatchTargetChooseCmd is so we have a way to
+    # prompt the user for the target.
+    if ([string]::IsNullOrWhiteSpace($env:PatchTargetDir) -and [string]::IsNullOrWhiteSpace($env:PatchTargetChooseCmd))
+    {
+        $env:PatchTargetChooseCmd = "ChooseVSInstance"
     }
 
     return $jsonContent
@@ -270,6 +283,9 @@ function Invoke-PatchProfile($patchProfile)
 
 function Get-PatchStatus
 {
+    # Populate any environment variables that might be needed from the profile.
+    Get-PatchConfiguration | Out-Null
+
     Set-GitRoot
 
     # Determine the destination directory.
@@ -434,6 +450,77 @@ function Set-CurrentPatchProfile($patchProfile)
     $env:PatchProfile = $patchProfile
 }
 
+# Creates a packed patch for buddy testing or installation on a demo machine.
+function New-PatchPackage($patchProfile, $outputDirectory)
+{
+    # Ensure we have a profile of that name.
+    $patchProfilePath = Get-PatchProfilePath $patchProfile
+
+    # Create packaging directory.
+    $packingDirectoryName = [guid]::NewGuid()
+    $tempDirectory = [System.IO.Path]::GetTempPath()
+    $packagingDirectory = (Join-Path $tempDirectory $packingDirectoryName)
+    New-Item $packagingDirectory -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "Packaging Directory: $packagingDirectory"
+
+    # Determine output directory
+    if ([string]::IsNullOrWhiteSpace($outputDirectory))
+    {
+        $outputDirectory = (Convert-Path .)
+    }
+    Write-Host "Output directory: $outputDirectory"
+
+    # Copy entrypoint script.
+    Write-Host "Copying entrypoint script..."
+    Copy-Item -Path "$Global:DependenciesDir\PatchPackageMain.psm1" "$packagingDirectory\main.psm1"
+
+    # Copy common bits.
+    Write-Host "Copying Common scripts..."
+    New-Item "$packagingDirectory\Common" -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "$Global:CommonDir\*" "$packagingDirectory\Common" -Force
+
+    # Copy features bits.
+    Write-Host "Copying Feature scripts..."
+    New-Item "$packagingDirectory\Features" -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "$Global:FeatureDir\*" "$packagingDirectory\Features" -Force
+
+    # Copy bits to patch.
+    Write-Host "Copying bits to patch..."
+    $binariesDirectory = "$packagingDirectory\Binaries"
+    New-Item $binariesDirectory -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    Set-GitRoot
+    $jsonContent = (Get-PatchConfiguration $patchProfile)
+    $files = $jsonContent.files
+    $updatedFiles = @{}
+    foreach ($file in $files)
+    {
+        foreach ($property in $file.PSObject.Properties)
+        {
+            $sourceFile = (Join-Path $env:PatchSourceDir $ExecutionContext.InvokeCommand.ExpandString($property.Name))
+
+            # Update file paths to point to the packaged file.
+            # NOTE: if there are multiple files with the same name, we'll run into problems here.
+            $sourceFileName = [System.IO.Path]::GetFileName($sourceFile)
+            Write-Host "Copying $sourceFileName..."
+            $updatedFiles["$sourceFileName"] = $property.Value
+
+            Copy-Item $sourceFile $binariesDirectory -Force
+        }
+    }
+
+    # Copy patch profile, replacing the source directory with the content directory of the package.
+    Write-Host "Copying tweaked patch profile..."
+    Write-Host $jsonContent.variables.Properties
+    $jsonContent.files = $updatedFiles
+    $jsonContent.variables | Add-Member -Name "`$env:PatchSourceDir" -Value "`$Global:PSScriptRoot\Binaries" -MemberType NoteProperty -Force
+    $patchProfileFileName = [System.IO.Path]::GetFileName($patchProfilePath)
+    $serializedJson = $jsonContent | ConvertTo-Json
+    Set-Content -Path "$packagingDirectory\$patchProfileFileName" -Value $serializedJson
+
+    # Create package.
+    Write-ClownCar "$patchProfile.patch.bat" $packagingDirectory
+}
+
 New-Alias -Name ptedit -Value Edit-PatchProfile
 New-Alias -Name ptget -Value Get-PatchProfiles
 New-Alias -Name ptapply -Value Invoke-PatchProfile
@@ -444,3 +531,4 @@ New-Alias -Name ptbuild -Value Invoke-BuildPatchProfile
 New-Alias -Name ptrun -Value Invoke-RunPatchProfileTarget
 New-Alias -Name ptbuildrun -Value Invoke-BuildAndRunPatchProfile
 New-Alias -Name ptuse -Value Set-CurrentPatchProfile
+New-Alias -Name ptpack -Value New-PatchPackage
