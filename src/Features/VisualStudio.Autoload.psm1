@@ -5,91 +5,84 @@ function Start-VSWhere
 {
     if (-not (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"))
     {
-        Write-Output -Foreground Yellow "Unable to find 'vswhere.exe'. Is Visual Studio installed?"
+        Throw "Unable to find 'vswhere.exe'. Is Visual Studio installed?"
     }
 
-    return &"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease
+    return &"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease -format json | ConvertFrom-Json
 }
 
 # Lists all installed VS instances
 function Get-VSInstances
 {
-    $output = Start-VSWhere
+    $instances = Start-VSWhere
 
-    $installationName = ""
-    $installationPath = ""
-    $displayName = ""
+    Write-Host -ForegroundColor Cyan "Installed VS Instances:"
 
     $i = 1
-    foreach ($line in $output)
+    foreach ($instance in $instances)
     {
-        if ($line.StartsWith("installationName:"))
-        {
-            $installationName = $line.Substring("installationName:".Length).Trim()
-        }
+        $displayName = $instance.displayName
+        $installationName = $instance.installationName
+        $installationPath = $instance.installationPath
+        $nickName = $instance.properties.nickname
+        $instanceId = $instance.instanceId
 
-        if ($line.StartsWith("installationPath:"))
-        {
-            $installationPath = $line.Substring("installationPath:".Length).Trim()
-        }
+        Write-Host "`n$i): $displayName`n    ->  $installationName`n    ->  $installationPath`n    ->  Nick Name: $nickName`n    ->  Instance Id: $instanceId"
 
-        if ($line.StartsWith("displayName:"))
-        {
-            $displayName = $line.Substring("displayName:".Length).Trim()
-            Write-Output "`n$i): $displayName`n    ->  $installationName`n    ->  $installationPath"
-            $i++
-        }
+        $i++
     }
 }
 
-# Starts a VS instance by its number with the specified arguments.
-function Start-VSInstanceInternal($instance, $wait, $arguments)
+function Get-VSInstance($instance)
 {
     if ([string]::IsNullOrWhiteSpace($instance))
     {
         $instance = 1
     }
 
-    $output = Start-VSWhere
+    $instances = Start-VSWhere
 
-    $i = 1
-    foreach ($line in $output)
+    if ($instances.Count -lt $instance)
     {
-        if ($line.StartsWith("productPath: "))
+        Throw "Invalid instance number."
+    }
+
+    return $instances[$instance - 1]
+}
+
+# Starts a VS instance by its number with the specified arguments.
+function Start-VSInstanceInternal($instance, $wait, $arguments)
+{
+    $instance = Get-VSInstance $instance
+
+    $productPath = $instance.productPath
+
+    # There's undoubtedly a better way to do this but figuring out
+    # what's going on when creating an array of arguments in Powershell's
+    # type-ambiguous world is massive pain. </rant>
+    if ($arguments -eq $null)
+    {
+        if ($wait)
         {
-            if ($i -eq $instance)
-            {
-                # There's undoubtedly a better way to do this but figuring out
-                # what's going on when creating an array of arguments in Powershell's
-                # type-ambiguous world is massive pain. </rant>
-                $devenvPath = $line.Substring("productPath: ".Length).Trim()
-                if ($arguments -eq $null)
-                {
-                    if ($wait)
-                    {
-                        Start-Process -FilePath $devenvPath -Wait
-                    }
-                    else
-                    {
-                        Start-Process -FilePath $devenvPath
-                    }
-                }
-                else
-                {
-                    if ($wait)
-                    {
-                        Start-Process -FilePath $devenvPath -ArgumentList $arguments -Wait
-                    }
-                    else
-                    {
-                        Start-Process -FilePath $devenvPath -ArgumentList $arguments
-                    }
-                }
-                return
-            }
-            $i++
+            Start-Process -FilePath $productPath -Wait
+        }
+        else
+        {
+            Start-Process -FilePath $productPath
         }
     }
+    else
+    {
+        if ($wait)
+        {
+            Start-Process -FilePath $productPath -ArgumentList $arguments -Wait
+        }
+        else
+        {
+            Start-Process -FilePath $productPath -ArgumentList $arguments
+        }
+    }
+    return
 }
 
 # Starts a VS instance by its number with the specified arguments.
@@ -111,86 +104,55 @@ function ConfigureVSInstance($instance)
 # Starts a VS instance's installation path by its number.
 function Start-VSInstancePath($instance)
 {
-    if ([string]::IsNullOrWhiteSpace($instance))
-    {
-        $instance = 1
-    }
+    $instance = Get-VSInstance $instance
 
-    $output = Start-VSWhere
-
-    $i = 1
-    foreach ($line in $output)
-    {
-        if ($line.StartsWith("installationPath: "))
-        {
-            if ($i -eq $instance)
-            {
-                start $line.Substring("installationPath: ".Length).Trim()
-                return
-            }
-            $i++
-        }
-    }
+    Start-Process $instance.installationPath
 }
 
 # Starts a VS instance's dev prompt by its number.
 function Start-VSInstancePrompt($instance)
 {
-    if ([string]::IsNullOrWhiteSpace($instance))
-    {
-        $instance = 1
-    }
+    $instance = Get-VSInstance $instance
 
-    $output = Start-VSWhere
+    $installationPath = $instance.installationPath
 
-    $i = 1
-    foreach ($line in $output)
-    {
-        if ($line.StartsWith("installationPath: "))
-        {
-            if ($i -eq $instance)
-            {
-                $installationPath = $line.Substring("installationPath: ".Length).Trim()
+    Clear-Host
 
-                Clear-Host
-
-                # Start a new session with both the dev prompt and tools environments.
-                & cmd.exe /K "`"$installationPath\Common7\Tools\VsDevCmd.bat`" & `"$Global:FeatureDir\..\Tools.bat`""
-                return
-            }
-            $i++
-        }
-    }
+    # Start a new session with both the dev prompt and tools environments.
+    & cmd.exe /K "`"$installationPath\Common7\Tools\VsDevCmd.bat`" & `"$Global:FeatureDir\..\Tools.bat`""
 }
 
 # Sets patch path to a VS install directory based on its number.
 function Set-VSPatchTarget($instance)
 {
-    if ([string]::IsNullOrWhiteSpace($instance))
-    {
-        $instance = 1
-    }
+    $instance = Get-VSInstance $instance
 
-    $output = Start-VSWhere
+    $env:PatchTargetDir = $instance.installationPath
 
-    $i = 1
-    foreach ($line in $output)
-    {
-        if ($line.StartsWith("installationPath: "))
-        {
-            if ($i -eq $instance)
-            {
-                $env:PatchTargetDir = $line.Substring("installationPath: ".Length).Trim()
-
-                # TODO: make this part of the patch configuration instead.
-                $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
-                return
-            }
-            $i++
-        }
-    }
+     # TODO: make this part of the patch configuration instead.
+     $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
 }
 
+function ChooseVSInstance
+{
+    Write-Host -ForegroundColor Yellow "Must specify application/instance to patch by setting `$env:PatchTargetDir"
+    Write-Host "Falling back to asking for VS version..."
+    Write-Host
+
+    # List VS instances
+    Write-Host -ForegroundColor Cyan Choose VS instance to patch
+    Get-VSInstances
+
+    # Set VS instance
+    $instance = Read-Host
+    Set-VSPatchTarget $instance
+
+    # Ensure user made a valid selection.
+    if ([string]::IsNullOrEmpty($env:PatchTargetDir))
+    {
+        Throw "Must specify application/instance to patch by setting `$env:PatchTargetDir"
+    }
+}
 
 New-Alias -Name vsget -Value Get-VSInstances
 New-Alias -Name vsstart -Value Start-VSInstance
