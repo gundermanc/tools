@@ -16,7 +16,7 @@ $ConfigurationValues =
     "DisableConsole" = $true
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "Version" = "0.45"
+    "Version" = "0.46"
 }
 
 $RegistryRootKeyPath = "HKCU:Software\Tools"
@@ -101,7 +101,7 @@ function Install-Tools
 
         # Create set of items in the system path.
         $systemPathSet = New-Object -TypeName System.Collections.Generic.HashSet[string]
-        $systemPath.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $systemPathSet.Add($_) }
+        $systemPath.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $systemPathSet.Add($_) | Out-Null }
 
         # Create set of items in the user path.
         $userPathSet = New-Object -TypeName System.Collections.Generic.HashSet[string]
