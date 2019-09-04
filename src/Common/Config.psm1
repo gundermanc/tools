@@ -16,7 +16,7 @@ $ConfigurationValues =
     "DisableConsole" = $true
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "Version" = "0.41"
+    "Version" = "0.45"
 }
 
 $RegistryRootKeyPath = "HKCU:Software\Tools"
@@ -93,6 +93,36 @@ function Install-Tools
         Return
     }
 
+    function Update-Path
+    {
+        Write-Host "Adding 'tools' to user's path..."
+        $systemPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine)
+        $userPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::User)
+
+        # Create set of items in the system path.
+        $systemPathSet = New-Object -TypeName System.Collections.Generic.HashSet[string]
+        $systemPath.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $systemPathSet.Add($_) }
+
+        # Create set of items in the user path.
+        $userPathSet = New-Object -TypeName System.Collections.Generic.HashSet[string]
+        $userPath.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { 
+            # Avoid re-adding items inherited from the system
+            # path to the user path and de-dupe any existing
+            # duplicates.
+            if (-not $systemPathSet.Contains($_))
+            {
+                $userPathSet.Add($_) | Out-Null
+            }
+        }
+
+        # Ensure user path contains installation location.
+        $userPathSet.Add($installationPath) | Out-Null
+
+        $updatedUserPath = [string]::Join(";", $userPathSet)
+        Write-Host "Updated user path: $updatedUserPath"
+        [Environment]::SetEnvironmentVariable("PATH", $updatedUserPath, [EnvironmentVariableTarget]::User)
+    }
+
     function Install-ToolsInternal
     {
         $installationPath = Get-InstallationPath
@@ -132,12 +162,7 @@ function Install-Tools
         New-Shortcut  $startupPath (Join-Path (Get-StartMenuPath) $ShortcutName)
 
         # Add tools to system path.
-        Write-Host "Adding 'tools' to user's path..."
-        $path = [Environment]::GetEnvironmentVariable("PATH")
-        if (-not $path.Contains($installationPath))
-        {
-            [Environment]::SetEnvironmentVariable("PATH", "$path;$installationPath", [EnvironmentVariableTarget]::User)
-        }
+        Update-Path
 
         Write-Host -ForegroundColor Green "`nInstall completed"
 
