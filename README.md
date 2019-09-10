@@ -123,8 +123,8 @@ Some devs do not trust the integrity of their local machine to experimental prod
 defined some experimental aliases for the innerloop that patch a remote machine or VM instead. This uses
 the same robust scripts as the regular patch and buddy packs.
   - ptrtarget [machine name] - Chooses a machine to patch for this PowerShell session.
-  - ptrapply - applies the files in the patch target to an installation on the remote machine.
-  - ptrbuildapply - builds with the command in $env:PatchBuildCmd and then applies the patch to the specified remote
+  - ptrapply [profile name] - applies the files in the patch target to an installation on the remote machine.
+  - ptrbuildapply [profile name] - builds with the command in $env:PatchBuildCmd and then applies the patch to the specified remote
     machine.
 
 ### More aliases
