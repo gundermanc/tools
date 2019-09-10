@@ -118,6 +118,15 @@ and auto-attaches the debugger.
 NOTE: for robustness, patch makes backups of each file, takes a hash of the original files, and kills any lock processes,
 guaranteeing that patch always succeeds, and revert never breaks VS after an update.
 
+#### Cross machine patching (Experimental)
+Some devs do not trust the integrity of their local machine to experimental products. In response, I have
+defined some experimental aliases for the innerloop that patch a remote machine or VM instead. This uses
+the same robust scripts as the regular patch and buddy packs.
+  - ptrtarget [machine name] - Chooses a machine to patch for this PowerShell session.
+  - ptrapply - applies the files in the patch target to an installation on the remote machine.
+  - ptrbuildapply - builds with the command in $env:PatchBuildCmd and then applies the patch to the specified remote
+    machine.
+
 ### More aliases
 
 #### Find
@@ -185,6 +194,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 9/9/2019 - Fixed issue where 'buddy-packs' would fail to pack due to a temp file that wasn't deleted. Added experimental aliases for cross-machine patching.
 - 9/3/2019 - ACTUALLY fix the PATH corruption bug. So sorry for those affected 😬
 - 8/27/2019 - Improve 'vsget' alias and introduce support for 'buddy packs' for packing up bits for sharing with teammates, testers, and demo/build machines.
 - 8/15/2019 - Install to consistent location. Can now uninstall with 'Uninstall-Tools' function. Fixed issue where we'd pollute the user's path. Refined build, deploy, run workflow aliases.

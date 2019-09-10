@@ -518,7 +518,8 @@ function New-PatchPackage($patchProfile, $outputDirectory)
     Set-Content -Path "$packagingDirectory\$patchProfileFileName" -Value $serializedJson
 
     # Create package.
-    Write-ClownCar "$patchProfile.patch.bat" $packagingDirectory
+    $packageFileName = "$patchProfile.patch.bat"
+    Write-ClownCar $packageFileName $packagingDirectory
 }
 
 New-Alias -Name ptedit -Value Edit-PatchProfile
