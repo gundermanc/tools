@@ -123,14 +123,16 @@ function Start-VSInstancePrompt($instance)
 }
 
 # Sets patch path to a VS install directory based on its number.
-function Set-VSPatchTarget($instance)
+function Set-VSPatchTarget($instanceId)
 {
-    $instance = Get-VSInstance $instance
+    $instance = Get-VSInstance $instanceId
 
     $env:PatchTargetDir = $instance.installationPath
 
      # TODO: make this part of the patch configuration instead.
      $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
+
+     Write-Host "Set patch target to #$instanceId`: $env:PatchTargetExe"
 }
 
 function ChooseVSInstance

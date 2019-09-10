@@ -60,7 +60,21 @@ function ConsoleLoop
 
 function Main
 {
-    ConsoleLoop
+    $args = Get-ClownCarArguments
+
+    if ($args.Length -eq 0)
+    {
+        ConsoleLoop
+    }
+    else
+    {
+        $argString = [string]::Join(" ", $args)
+        Write-Host "Received arguments: $argString"
+        
+        # In remote patching scenarios, caller wants to just call functions
+        # that were packed up.
+        Invoke-Expression $argString
+    }
 
     ClownCarCleanupAndExit
 }
