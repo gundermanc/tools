@@ -8,13 +8,18 @@ Import-Module "$Global:CommonDir\clown-car-packager-api.psm1"
 # Gets a patch profile file path.
 function Get-PatchProfilePath($patchProfile)
 {
+    # Patch profile wasn't specified?
     if ([string]::IsNullOrWhiteSpace($patchProfile))
     {
         if ([string]::IsNullOrWhiteSpace($env:PatchProfile))
         {
-            Throw "Must provide a patch profile name argument"
+            # Prompt the user for one to use for just this instance. They can use ptuse to remember it.
+            Write-Host -ForegroundColor Yellow "No patch profile name argument was provided. Run 'ptuse [profile]' to remember a patch profile for this console session"
+            Write-Host -Foreground Yellow "Enter a patch profile name:"
+            Set-CurrentPatchProfile (Read-Host)
         }
 
+        # Read value from the environment variable.
         $patchProfile = $env:PatchProfile
     }
 

@@ -12,9 +12,12 @@ function Set-TargetMachine($machineName)
 # Gets the target machine that will be used for patching.
 function Get-TargetMachine
 {
+    # If user hasn't specified a machine name, prompt for one.
     if ([string]::IsNullOrWhiteSpace($env:PatchTargetMachine))
     {
-        Throw "Must specify target machine with ptrtarget"
+        Write-Host -ForegroundColor Yellow "No machine name was set with 'ptrtarget'. Please enter machine name: "
+        $machineName = Read-Host
+        Set-TargetMachine $machineName
     }
 
     return $env:PatchTargetMachine
