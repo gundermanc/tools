@@ -139,6 +139,56 @@ function Get-PatchProfiles
     Get-ChildItem "$Global:ScratchDir\*.patchprofile"
 }
 
+function CheckAssemblyVersions($source, $destination)
+{
+    # Do nothing if either file doesn't exist.
+    if ((-not (Test-Path $source) -or (-not (Test-Path $destination))))
+    {
+        return
+    }
+
+    # Do nothing if the destination file isn't an executable.
+    $destinationExtension = [System.IO.Path]::GetExtension($destination)
+    if ($destinationExtension -ine ".dll" -and $destinationExtension -ine ".exe")
+    {
+        return
+    }
+
+    Write-Host "  - Checking that assembly versions match..."
+
+    $powershellPath = (Join-Path $PsHome "powershell.exe")
+
+    # Load assemblies in separate process and check their versions to make sure
+    # they match. This is done in a separate process so that the assemblies are
+    # unlocked at exit.
+    $checkOutput = & $powershellPath -c {
+        param($source, $destination)
+
+        try
+        {
+            $sourceAssembly = [System.Reflection.Assembly]::LoadFrom($source)
+            $destinationAssembly = [System.Reflection.Assembly]::LoadFrom($destination)
+
+            $sourceVersion = $sourceAssembly.GetName().Version.ToString()
+            $destinationVersion = $destinationAssembly.GetName().Version.ToString()
+
+            if (-not ($sourceVersion -eq $destinationVersion))
+            {
+                $fileName = [System.IO.Path]::GetFileName($destination)
+                Write-Host "Mismatched assembly version for '$fileName'. Original is $destinationVersion, new is $sourceVersion"
+                Write-Host "'$fileName' may fail to load unless application has correct binding redirects."
+            }
+        }
+        catch [System.BadImageFormatException]
+        {
+            # Failed to load or more of the assemblies, most likely due to it being unmanaged.
+            # Do nothing.
+        }
+    } -args $source, $destination
+
+    Write-Host -ForegroundColor Yellow $checkOutput
+}
+
 function RevertItem($destinationFile)
 {
     $stockRevisionFile = "$destinationFile.stockrevision"
@@ -217,6 +267,11 @@ function Invoke-PatchProfile($patchProfile)
                     }
                 }
             }
+
+            # Print a warning if the managed assembly versions mismatch.
+            # In managed applications, this will prevent the assembly from loading
+            # unless there are binding redirects.
+            CheckAssemblyVersions $sourceFile $destinationFile
 
             if (Test-Path $destinationFile)
             {
