@@ -175,8 +175,8 @@ function CheckAssemblyVersions($source, $destination)
             if (-not ($sourceVersion -eq $destinationVersion))
             {
                 $fileName = [System.IO.Path]::GetFileName($destination)
-                Write-Host "Mismatched assembly version for '$fileName'. Original is $destinationVersion, new is $sourceVersion"
-                Write-Host "'$fileName' may fail to load unless application has correct binding redirects."
+                Write-Output "Mismatched assembly version for '$fileName'. Original is $destinationVersion, new is $sourceVersion"
+                Write-Output "'$fileName' may fail to load unless application has correct binding redirects."
             }
         }
         catch [System.BadImageFormatException]
