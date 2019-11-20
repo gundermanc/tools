@@ -194,6 +194,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 11/19/2019 - Added a warning on patch when assembly binding versions are mismatched.
 - 9/9/2019 - Fixed issue where 'buddy-packs' would fail to pack due to a temp file that wasn't deleted. Added experimental aliases for cross-machine patching.
 - 9/3/2019 - ACTUALLY fix the PATH corruption bug. So sorry for those affected 😬
 - 8/27/2019 - Improve 'vsget' alias and introduce support for 'buddy packs' for packing up bits for sharing with teammates, testers, and demo/build machines.
