@@ -30,7 +30,7 @@ function Add-AutoDump($exeName, $path)
     }
     Set-ItemProperty -Path $key -Name "DumpCount" -Value "10"
     Set-ItemProperty -Path $key -Name "DumpFolder" -Value $path
-    Set-ItemProperty -Path $key -Name "DumpType" -Value 1
+    Set-ItemProperty -Path $key -Name "DumpType" -Value 2
     Write-Host -ForegroundColor Green "Set '$exeName' to capture dumps to '$path'"
 }
 
