@@ -163,7 +163,6 @@ Use with Visual Studio
   and no longer need to specify the profile each build.
 - ptpack [profile]: Packs up the current contents of the selected profile into a self-extracting batch script that can be shared with others.
 
-
 #### Process Snapshot
 Defines some convenient scripts and aliases for killing groups of processes
 to help get you unblocked if a build executable is locking a file.
@@ -174,6 +173,12 @@ to help get you unblocked if a build executable is locking a file.
 - pbnstop [profile]: Stops all executables except those reference by the given profile or 'Default' profile if not specified.
 - pbstop [profile]: Stops all executables referenced by the given profile or 'Default' profile if not specified.
 - pbedit [profile]: Opens a named profile for manual editing.
+
+#### Reliability Tools
+Defines some aliases for automating investigation of build failures and crashes.
+- `dmpadd [exeName] [dumpPath]`: Sets Windows to automatically capture dumps of the specified program to the specified folder.
+- `dmpget`: Lists all apps currently set for automatic dump collection on this PC.
+- `dmprm [exeName]`: Removes the specified program from automatic dump collection.
 
 #### Navigation aliases
 Defines aliases for navigating and opening explorer in named paths.
@@ -194,6 +199,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 12/11/2019 - Added aliases for enabling automatic dump collection of executables on crash.
 - 11/19/2019 - Added a warning on patch when assembly binding versions are mismatched and added prompts instead of failures when patching without specifying machine name.
 - 9/9/2019 - Fixed issue where 'buddy-packs' would fail to pack due to a temp file that wasn't deleted. Added experimental aliases for cross-machine patching.
 - 9/3/2019 - ACTUALLY fix the PATH corruption bug. So sorry for those affected 😬
