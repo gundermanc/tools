@@ -199,6 +199,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching.
 
 ## ChangeLog
+- 12/12/2019 - Updated `vspatch` to set the Apex test framework to use the targed VS when the user makes a selection.
 - 12/11/2019 - Added aliases for enabling automatic dump collection of executables on crash.
 - 11/19/2019 - Added a warning on patch when assembly binding versions are mismatched and added prompts instead of failures when patching without specifying machine name.
 - 9/9/2019 - Fixed issue where 'buddy-packs' would fail to pack due to a temp file that wasn't deleted. Added experimental aliases for cross-machine patching.

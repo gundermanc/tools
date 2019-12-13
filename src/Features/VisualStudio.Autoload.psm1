@@ -127,12 +127,16 @@ function Set-VSPatchTarget($instanceId)
 {
     $instance = Get-VSInstance $instanceId
 
+    # Set the variable listened to by the patch script so that patch knows which VS to update.
     $env:PatchTargetDir = $instance.installationPath
 
-     # TODO: make this part of the patch configuration instead.
-     $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
+    # Set our target exe so the patch script knows how to start us.
+    $env:PatchTargetExe = (Join-Path $env:PatchTargetDir "Common7\IDE\devenv.exe")
 
-     Write-Host "Set patch target to #$instanceId`: $env:PatchTargetExe"
+    # Apex VS testing framework looks at this environment variable to determine which VS to run against.
+    ${env:VisualStudio.InstallationUnderTest.Path}
+
+    Write-Host "Set patch target to #$instanceId`: $env:PatchTargetExe"
 }
 
 function ChooseVSInstance
