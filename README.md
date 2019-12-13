@@ -34,7 +34,7 @@ guaranteeing that patch always succeeds, and revert never breaks VS after an upd
 - Open your 'scratch' (tool configuration) directory by typing 'nvgo scratch'
 - Specify the VS instance to patch for this session by:
   - `vsget`: lists VS instances on your box
-  - `vspatch [instance number]`: sets the VS instance you wish to use as your target instance (if patching VS extensions).
+  - `vspatch [instance number]`: sets the VS instance you wish to use as your target instance (if patching VS extensions or running Apex tests).
 - You can create a new patch profile with `ptedit [profile name]`. This gets stored in your scratch directory.
 
 ##### Creating patch profiles
@@ -42,7 +42,7 @@ You can create a new patch profile with `ptedit [profile name]`. This gets store
 Patch profiles support embedded Powershell variables, including `$env:` for environment variables. Commands is an array of Powershell commands
 that are run on patch.
 
-Must first set `$env:PatchTargetDir` to directory you want to patch. Use `vspatch [install number]` to patch a VS install.
+Must first set `$env:PatchTargetDir` to directory you want to patch. Use `vspatch [install number]` to choose which VS install to patch.
 
 ```json
 {
@@ -196,7 +196,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vsconfig [instance]: Updates configuration timestamp on a specific VS.
 - vspath [instance]: Opens installation path on a specific VS.
 - vscmd [instance]: Launches developer command prompt for a specific VS.
-- vspatch [instance]: Selects an instance of VS as the target application for patching.
+- vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
 - 12/12/2019 - Updated `vspatch` to set the Apex test framework to use the targed VS when the user makes a selection.
