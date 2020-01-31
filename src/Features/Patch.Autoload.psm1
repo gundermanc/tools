@@ -131,14 +131,23 @@ commands: an array of PowerShell commands to run after the patch and unpatch.
 "@
 }
 
-# Opens a patch profile for editing.
+<#
+.SYNOPSIS
+Opens a patch profile for editing.
+
+.PARAMETER patchProfile
+Name of the patch profile to open.
+#>
 function Edit-PatchProfile($patchProfile)
 {
     Write-PatchSchema
     & notepad.exe (Get-PatchProfilePath $patchProfile)
 }
 
-# Gets a list of known process baselines.
+<#
+.SYNOPSIS
+Gets a list of patch profiles installed on the machine.
+#>
 function Get-PatchProfiles
 {
     Get-ChildItem "$Global:ScratchDir\*.patchprofile"
@@ -247,7 +256,14 @@ function RevertItem($destinationFile)
     }
 }
 
-# Invokes a patch profile on a program install.
+<#
+.SYNOPSIS
+Applies a patch profile to an application installation.
+
+.PARAMETER patchProfile
+The name of the patch profile. If left blank, will prompt or use
+result of last call to 'ptuse'.
+#>
 function Invoke-PatchProfile($patchProfile)
 {
     function PatchItem ($sourceFile, $destinationFile)
@@ -341,6 +357,10 @@ function Invoke-PatchProfile($patchProfile)
     }
 }
 
+<#
+.SYNOPSIS
+Lists file that have been patched on the target application.
+#>
 function Get-PatchStatus
 {
     # Populate any environment variables that might be needed from the profile.
@@ -362,7 +382,13 @@ function Get-PatchStatus
     }
 }
 
-# Invokes a patch profile revert on a program install.
+<#
+.SYNOPSIS
+Reverts patched changes to the target application.
+
+.PARAMETER patchProfile
+The name of the patch profile to use. If empty, will prompt.
+#>
 function Invoke-RevertPatchProfile($patchProfile)
 {
     Set-GitRoot
@@ -397,7 +423,20 @@ function Invoke-RevertPatchProfile($patchProfile)
     }
 }
 
-# Opens a solution + patch profile in Visual Studio for F5 debugging.
+<#
+.SYNOPSIS
+Opens a solution in Visual Studio for F5 debugging.
+
+.PARAMETER vsInstance
+The number of the VS instance, returned by 'vsget', that will be used 
+for editing and debugging.
+
+.PARAMETER solutionPath
+The path of the solution to open in Visual Studio.
+
+.PARAMETER patchProfile
+The patch profile to apply on build.
+#>
 function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
 {
     if ([string]::IsNullOrWhiteSpace($vsInstance) -or [string]::IsNullOrWhiteSpace($solutionPath) -or [string]::IsNullOrWhiteSpace($patchProfile))
@@ -448,7 +487,13 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
     $env:PostBuildEvent=$oldPostBuildEvent
 }
 
-# Invokes a patch profile build operation.
+<#
+.SYNOPSIS
+Builds the specified patch profile.
+
+.PARAMETER patchProfile
+The name of the patch profile to build.
+#>
 function Invoke-BuildPatchProfile($patchProfile)
 {
     Set-GitRoot
@@ -470,7 +515,14 @@ function Invoke-BuildPatchProfile($patchProfile)
     }
 }
 
-# Invokes a patch profile target executable.
+
+<#
+.SYNOPSIS
+Launches the target application that we are patching.
+
+.PARAMETER patchProfile
+The name of the profile to use.
+#>
 function Invoke-RunPatchProfileTarget($patchProfile)
 {
     Set-GitRoot
@@ -487,7 +539,13 @@ function Invoke-RunPatchProfileTarget($patchProfile)
     & $env:PatchTargetExe
 }
 
-# Builds, patches, and runs the target of a patch profile.
+<#
+.SYNOPSIS
+Builds, patches, and runs the target of a patch profile.
+
+.PARAMETER patchProfile
+Name of profile in scratch directory to apply.
+#>
 function Invoke-BuildAndRunPatchProfile($patchProfile)
 {
     # Build project.
@@ -500,7 +558,14 @@ function Invoke-BuildAndRunPatchProfile($patchProfile)
     Invoke-RunPatchProfileTarget $patchProfile
 }
 
-# Enables setting a current preferred patch profile.
+<#
+.SYNOPSIS
+Enables setting a current preferred patch profile.
+
+.PARAMETER patchProfile
+The name (without an extension) of a profile in the scratch directory to use for search.
+
+#>
 function Set-CurrentPatchProfile($patchProfile)
 {
     # Ensure we have a profile of that name.
@@ -510,7 +575,16 @@ function Set-CurrentPatchProfile($patchProfile)
     $env:PatchProfile = $patchProfile
 }
 
-# Creates a packed patch for buddy testing or installation on a demo machine.
+<#
+.SYNOPSIS
+Creates a packed patch for buddy testing or installation on a demo machine.
+
+.PARAMETER patchProfile
+Name of a patch profile file in scratch directory to use to pack.
+
+.PARAMETER outputDirectory
+Directory to write patch script self-extractor to.
+#>
 function New-PatchPackage($patchProfile, $outputDirectory)
 {
     # Ensure we have a profile of that name.

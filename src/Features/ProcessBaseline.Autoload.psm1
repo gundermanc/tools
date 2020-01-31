@@ -157,7 +157,13 @@ static public class FileUtil
 
 Add-Type -TypeDefinition $GetLockingProcessesCode
 
-# Stops processes that have locked the given file name.
+<#
+.SYNOPSIS
+Stops all processes that have locked the given file.
+
+.PARAMETER fileName
+Path to file that is currently locked.
+#>
 function Stop-LockingApp($fileName)
 {
     if ([string]::IsNullOrWhiteSpace($fileName))
@@ -177,6 +183,16 @@ function Stop-LockingApp($fileName)
     }
 }
 
+<#
+.SYNOPSIS
+Writes the list of processes locking the specified file.
+
+.PARAMETER baselineFile
+The name of the file in scratch directory to write to.
+
+.PARAMETER fileName
+The file that is locked.
+#>
 function Write-LockingProcesses($baselineFile, $fileName)
 {
     $baselinePath = Get-ProcessBaselinePath($baselineFile)
@@ -207,13 +223,30 @@ function Get-ProcessBaselinePath($baselineFile)
     return Join-Path $Global:ScratchDir "$baselineFile.processbaseline"
 }
 
-# Gets a list of known process baselines.
+<#
+.SYNOPSIS
+Gets a list of process baselines from the scratch directory.
+#>
 function Get-ProcessBaselines
 {
     Get-ChildItem "$Global:ScratchDir\*.processbaseline"
 }
 
-# Serializes a list of currently running processes with the given name.
+<#
+.SYNOPSIS
+Serializes a list of currently running processes to a file.
+
+.DESCRIPTION
+This cmdlet can be used for baselining processes running on a machine
+in order to kill-all and return to a clean state.
+
+This is useful for context-switching or enumerating processes that might
+be locking build artifacts.
+
+.PARAMETER baselineFile
+The name of the file to write the process names to in the scratch dir.
+
+#>
 function New-ProcessBaseline($baselineFile)
 {
     $baselineFile = Get-ProcessBaselinePath $baselineFile
@@ -222,8 +255,16 @@ function New-ProcessBaseline($baselineFile)
     Set-Content -Path $baselineFile $processes.Path
 }
 
-# Stops all but the given list of processes. This is useful for killing exes that might
-# have locked files during build.
+<#
+.SYNOPSIS
+Stops all processes except those in the baseline.
+
+.DESCRIPTION
+This is useful for killing exes that might have locked files during build.
+
+.PARAMETER baselineFile
+The name of the file in the scratch directory with processes.
+#>
 function Stop-NonProcessBaseline($baselineFile)
 {
     $baselineFile = Get-ProcessBaselinePath $baselineFile
@@ -242,7 +283,14 @@ function Stop-NonProcessBaseline($baselineFile)
     }
 }
 
-# Stops the given list of processes.
+<#
+.SYNOPSIS
+Stops the given list of processes.
+
+.PARAMETER baselineFile
+Path to a file with process names to kill.
+
+#>
 function Stop-ProcessBaseline($baselineFile)
 {
     $baselineFile = Get-ProcessBaselinePath $baselineFile
@@ -261,7 +309,14 @@ function Stop-ProcessBaseline($baselineFile)
     }
 }
 
-# Opens the given list of processes for editing.
+<#
+.SYNOPSIS
+Opens the given list of processes for editing.
+
+.PARAMETER baselineFile
+The name of a baseline (without extension) in the scratch directory to open.
+
+#>
 function Edit-ProcessBaseline($baselineFile)
 {
     $baselineFile = Get-ProcessBaselinePath $baselineFile

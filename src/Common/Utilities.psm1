@@ -24,8 +24,11 @@ function Write-VersionInfo
 {
     $version = (Get-ConfigurationValue "Version")
 
-    Write-Host -ForegroundColor Cyan "Windows Application Developer Tools $version"
-    Write-host "By: Christian Gunderman"
+    Write-Host "-------------------------------------------------------------------"
+    Write-Host -ForegroundColor Cyan "  Windows Application Developer Tools $version"
+    Write-Host
+    Write-host "  By: Christian Gunderman"
+    Write-Host "-------------------------------------------------------------------"
     Write-Host
 }
 
