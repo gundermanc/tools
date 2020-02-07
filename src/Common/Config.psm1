@@ -16,7 +16,7 @@ $ConfigurationValues =
     "DisableConsole" = $true
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "Version" = "0.54"
+    "Version" = "0.55"
 }
 
 $RegistryRootKeyPath = "HKCU:Software\Tools"
@@ -49,11 +49,13 @@ function Get-ConfigurationValue($key)
 
     if ($regValue -ne $null)
     {
-        Write-Host "Registry Option -> " $key $regValue
+        Write-Verbose "Registry Option -> $key $regValue"
         return $regValue
     }
 
-    Write-Host "Default Option -> " $key = $ConfigurationValues[$key]
+    $defaultValue = $ConfigurationValues[$key]
+
+    Write-Verbose "Default Option -> $key = $defaultValue"
 
     return $ConfigurationValues[$key]
 }

@@ -3,13 +3,22 @@
 
 # NOTE: currently only works with patching Visual Studio. Needs to be generalized.
 
-# Sets the machine to patch.
+<#
+.SYNOPSIS
+Sets the name of the machine to patch.
+
+.PARAMETER machineName
+The name of the machine to patch.
+#>
 function Set-TargetMachine($machineName)
 {
     $env:PatchTargetMachine = $machineName
 }
 
-# Gets the target machine that will be used for patching.
+<#
+.SYNOPSIS
+Gets the target machine that will be used for patching.
+#>
 function Get-TargetMachine
 {
     # If user hasn't specified a machine name, prompt for one.
@@ -23,7 +32,15 @@ function Get-TargetMachine
     return $env:PatchTargetMachine
 }
 
-# Builds and patches the target of a patch profile on a remote machine.
+
+<#
+.SYNOPSIS
+Builds and patches the target of a patch profile on a remote machine.
+
+.PARAMETER patchProfile
+Name of a patch profile in the scratch directory to apply to remote machine.
+
+#>
 function Invoke-BuildAndPatchProfile($patchProfile)
 {
     # Build project.
@@ -33,7 +50,17 @@ function Invoke-BuildAndPatchProfile($patchProfile)
     Invoke-PatchProfileOnMachine $patchProfile
 }
 
-# Applies changes to a remote machine for testing.
+<#
+.SYNOPSIS
+Invokes a patch profile on a remote machine.
+
+.PARAMETER patchProfile
+Name of a patch profiel in the scratch directory.
+
+.NOTES
+Currently only tested to work with machines that are authenticated to the
+same Active Directory user ID.
+#>
 function Invoke-PatchProfileOnMachine($patchProfile)
 {
     $targetMachine = Get-TargetMachine

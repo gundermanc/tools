@@ -12,6 +12,11 @@ function Start-VSWhere
 }
 
 # Lists all installed VS instances
+
+<#
+.SYNOPSIS
+Lists all installed Visual Studio instances.
+#>
 function Get-VSInstances
 {
     $instances = Start-VSWhere
@@ -51,6 +56,7 @@ function Get-VSInstance($instance)
 }
 
 # Starts a VS instance by its number with the specified arguments.
+
 function Start-VSInstanceInternal($instance, $wait, $arguments)
 {
     $instance = Get-VSInstance $instance
@@ -85,23 +91,53 @@ function Start-VSInstanceInternal($instance, $wait, $arguments)
     return
 }
 
-# Starts a VS instance by its number with the specified arguments.
+
+<#
+.SYNOPSIS
+Starts a VS instance by its number with the specified arguments.
+
+.PARAMETER instance
+VS instance number (run vsget to determine this).
+
+.PARAMETER arguments
+Arguments to pass to VS.
+#>
 function Start-VSInstance($instance, $arguments)
 {
     Start-VSInstanceInternal $instance $false $arguments
 }
 
+<#
+.SYNOPSIS
+Resets a VS instance to factory settings.
+
+.PARAMETER instance
+The VS instance number, retrieved with 'vsget'.
+#>
 function Reset-VSInstance($instance)
 {
     Start-VSInstanceInternal $instance $true /resetuserdata
 }
 
+<#
+.SYNOPSIS
+Rebuilds the MEF cache and rescans for extensions and updates configuration timestamp.
+
+.PARAMETER instance
+VS instance number, retrieved with 'vsget'.
+#>
 function ConfigureVSInstance($instance)
 {
     Start-VSInstanceInternal $instance $true /updateconfiguration
 }
 
-# Starts a VS instance's installation path by its number.
+<#
+.SYNOPSIS
+Opens a VS instance's installation path in explorer, by its number.
+
+.PARAMETER instance
+The instance number, retrieved with 'vsget'.
+#>
 function Start-VSInstancePath($instance)
 {
     $instance = Get-VSInstance $instance
@@ -109,7 +145,13 @@ function Start-VSInstancePath($instance)
     Start-Process $instance.installationPath
 }
 
-# Starts a VS instance's dev prompt by its number.
+<#
+.SYNOPSIS
+Starts a VS instance's dev prompt by its number.
+
+.PARAMETER instance
+Instance number, retrieved by 'vsget'.
+#>
 function Start-VSInstancePrompt($instance)
 {
     $instance = Get-VSInstance $instance
@@ -122,7 +164,13 @@ function Start-VSInstancePrompt($instance)
     & cmd.exe /K "`"$installationPath\Common7\Tools\VsDevCmd.bat`" & `"$Global:FeatureDir\..\Tools.bat`""
 }
 
-# Sets patch path to a VS install directory based on its number.
+<#
+.SYNOPSIS
+Sets patch path to a VS install directory based on its number.
+
+.PARAMETER instanceId
+VS instance to patch.
+#>
 function Set-VSPatchTarget($instanceId)
 {
     $instance = Get-VSInstance $instanceId

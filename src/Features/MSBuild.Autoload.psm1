@@ -9,21 +9,39 @@ function EnsureMSBuild
     }
 }
 
-# Builds a project using typical settings.
+<#
+.SYNOPSIS
+Builds a project using typical settings and displays an error list.
+
+.PARAMETER project
+The path to the project to build.
+#>
 function Start-MSBuild($project)
 {
     EnsureMSBuild
     & msbuild.exe /r /t:build /m $project | & "$Global:FeatureDir\MSBuildErrorList.ps1"
 }
 
-# Cleans a project.
+<#
+.SYNOPSIS
+Cleans a project using typical settings and displays an error list.
+
+.PARAMETER project
+The path to the project to build.
+#>
 function Start-MSClean($project)
 {
     EnsureMSBuild
     & msbuild.exe /t:clean /m $project | & "$Global:FeatureDir\MSBuildErrorList.ps1"
 }
 
-# Restores a project.
+<#
+.SYNOPSIS
+Restores a project using typical settings and displays an error list.
+
+.PARAMETER project
+The path to the project to build.
+#>
 function Start-MSRestore($project)
 {
     EnsureMSBuild

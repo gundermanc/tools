@@ -1,11 +1,23 @@
 # Aliases for collecting dumps + traces in a simple way (locally or on build machines)
 # By: Christian Gunderman
 
+$JITDebuggingExcludePath = "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug\AutoExclusionList"
 $LocalDumpsPath = "HKLM:SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
 
-# Adds the specified exe name to Windows automatic dump collection.
+<#
+.SYNOPSIS
+Adds the specified exe name to Windows automatic dump collection.
+
+.PARAMETER exeName
+Name of the EXE to capture dumps for on crash.
+
+.PARAMETER path
+Parameter description
+#>
 function Add-AutoDump($exeName, $path)
 {
+    ThrowIfNotAdmin
+
     # Validate arguments.
     if ([string]::IsNullOrWhiteSpace($exeName) -or [string]::IsNullOrWhiteSpace($path))
     {
@@ -34,15 +46,27 @@ function Add-AutoDump($exeName, $path)
     Write-Host -ForegroundColor Green "Set '$exeName' to capture dumps to '$path'"
 }
 
-# Lists all exes that are configured to collect dumps.
+<#
+.SYNOPSIS
+Lists all EXEs that are configured for automatic dump collection.
+#>
 function Get-AutoDump()
 {
     Get-ChildItem "HKLM:SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" |
         Foreach-Object { [System.IO.Path]::GetFileName($_.Name) }
 }
 
+<#
+.SYNOPSIS
+Disables automatic dump collection for specified EXE.
+
+.PARAMETER exeName
+EXE to unregister.
+#>
 function Remove-AutoDump($exeName)
 {
+    ThrowIfNotAdmin
+
     # Validate arguments.
     if ([string]::IsNullOrWhiteSpace($exeName))
     {
@@ -65,6 +89,7 @@ function Remove-AutoDump($exeName)
 
     # Delete item.
     Remove-Item $key
+    Remove-ItemProperty -Path $JITDebuggingExcludePath -Name $exeName -ErrorAction SilentlyContinue
     Write-Host -ForegroundColor Green "Disabled '$exeName' dump capture."
 }
 
