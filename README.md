@@ -16,6 +16,10 @@ Auto-updates on subsequent usages.
 - In Powershell: `tools.ps1`
 - In Developer Command Prompt: `tools.cmd`.
 
+#### Documentation
+- Run 'toolhelp' to list supported commands.
+- Run 'Get-Help [alias]' for information on each alias.
+
 #### 'Building'
 - Clone the repository recursively
 - Update submodules
@@ -199,6 +203,8 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
+- 2/7/2020 - Fixed issue where 'nve scratch' was broken.
+- 2/6/2020 - Added 'toolhelp' command for self-documentation.
 - 12/12/2019 - Updated `vspatch` to set the Apex test framework to use the targed VS when the user makes a selection.
 - 12/11/2019 - Added aliases for enabling automatic dump collection of executables on crash.
 - 11/19/2019 - Added a warning on patch when assembly binding versions are mismatched and added prompts instead of failures when patching without specifying machine name.
