@@ -12,7 +12,7 @@ Write-Host
 
 # Make a scratch directory for storing local preferences and tool output.
 # This is stored one level up from the install directory so that it persists when updated.
-$Global:ScratchDir = (Resolve-Path "$Global:PSScriptRoot\..\ToolsScratch")
+$Global:ScratchDir = (Resolve-Path "$Global:PSScriptRoot\..\ToolsScratch").Path
 
 # Create an alias to the scratch directory.
 New-NavLocation scratch $Global:ScratchDir | Out-Null
