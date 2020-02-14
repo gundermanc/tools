@@ -235,25 +235,36 @@ function RevertItem($destinationFile)
             return $true
         }
 
-        # Ensure that the patched file hash matches the one we saved when we performed
-        # the patch. This eliminates the possibility that the application being updated
-        # could overwrite the patched bits and then be wiped out by 'reverting'.
-        $destinationHash = (Get-FileHash $destinationFile).Hash
-        if ($destinationHash -eq (Get-Content $updateHashFile))
+        # Before checking the hash, if there's a backup hash (we've been patched)
+        # and the file is a link, this was probably a ptf5. Delete it so we don't
+        # write to the link target.
+        if ((Get-Item $destinationFile).Attributes -band [IO.FileAttributes]::ReparsePoint)
         {
-            # This file may not exist if the patch script copied it over for the first time.
-            if ((Test-Path $stockRevisionFile))
-            {
-                Copy-Item -Path $stockRevisionFile -Destination $destinationFile -Force
-            }
-            else
-            {
-                Remove-Item $destinationFile
-            }
+            Remove-Item -Force $destinationFile
+            Copy-Item -Path $stockRevisionFile -Destination $destinationFile -Force
         }
         else
         {
-            Write-Host -ForegroundColor Yellow "There appears to have been an update. Skipping reverting $destinationFile."
+            # Ensure that the patched file hash matches the one we saved when we performed
+            # the patch. This eliminates the possibility that the application being updated
+            # could overwrite the patched bits and then be wiped out by 'reverting'.
+            $destinationHash = (Get-FileHash $destinationFile).Hash
+            if ($destinationHash -eq (Get-Content $updateHashFile))
+            {
+                # This file may not exist if the patch script copied it over for the first time.
+                if ((Test-Path $stockRevisionFile))
+                {
+                    Copy-Item -Path $stockRevisionFile -Destination $destinationFile -Force
+                }
+                else
+                {
+                    Remove-Item $destinationFile
+                }
+            }
+            else
+            {
+                Write-Host -ForegroundColor Yellow "There appears to have been an update. Skipping reverting $destinationFile."
+            }
         }
 
         # This file may not exist if the patch script copied it over for the first time.
@@ -455,6 +466,15 @@ function Invoke-RevertPatchProfile($patchProfile)
 .SYNOPSIS
 Opens a solution in Visual Studio for F5 debugging.
 
+.DESCRIPTION
+This script creates backups of all target files and then installs
+links into the target directory to replace the files that are patched.
+
+Each build in Visual Studio then updates the targets of the links, causing
+the program's linked copies to magically be updated. 'StartProgram' behavior
+is injected into the application via 'StartProgram' MSBuild properties
+understood by the IDE.
+
 .PARAMETER vsInstance
 The number of the VS instance, returned by 'vsget', that will be used 
 for editing and debugging.
@@ -469,7 +489,7 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
 {
     if ([string]::IsNullOrWhiteSpace($vsInstance) -or [string]::IsNullOrWhiteSpace($solutionPath) -or [string]::IsNullOrWhiteSpace($patchProfile))
     {
-        Throw "Requires vsinstance, solution path, and patch profile name"
+        Throw "Requires vsinstance, solution path, and patch profile name arguments"
     }
 
     $solutionPath = $ExecutionContext.InvokeCommand.ExpandString($solutionPath)
@@ -478,32 +498,51 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
         Throw "Unable to find solution at $solutionPath"
     }
 
+    # HACK: Start by applying the patch profile the normal way. This effectively lets us
+    # easily reuse the code we have for creating backups and unlocking locked files to
+    # backup all files we'll touch.
+    Invoke-PatchProfile($patchProfile)
+
     Set-GitRoot
 
     # Check that given patch profile exists. Should throw on error.
     Get-PatchProfilePath($patchProfile)
 
     # Check that the user has chosen a patch target directory first. Should throw on error.
-    Get-PatchTargetDirectory
+    $destinationDirectory = Get-PatchTargetDirectory
+
+    # Replace all product files we'll patch with links to build outputs.
+    # These links with magically (and invisibly) update the product each time
+    # we build.
+    Write-Host -ForegroundColor Cyan "Replacing '$patchProfile' files with links..."
+    $jsonContent = (Get-PatchConfiguration $patchProfile)
+    $files = $jsonContent.files
+    foreach ($file in $files)
+    {
+        foreach ($property in $file.PSObject.Properties)
+        {
+            $sourceFile = (Join-Path $env:PatchSourceDir $ExecutionContext.InvokeCommand.ExpandString($property.Name))
+            $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
+
+            $destinationFileDirectory = [System.IO.Path]::GetDirectoryName($destinationFile)
+            $destinationFileName = [System.IO.Path]::GetFileName($destinationFile)
+
+            # Create link.
+            Push-Location $destinationFileDirectory
+            Remove-Item -Path $destinationFile -Force
+            New-Item -ItemType SymbolicLink -Name "$destinationFileName" -Value $sourceFile | Out-Null
+            Pop-Location 
+        }
+    }
 
     # Record old values of env. variables so they can be reverted after VS is launched.
     $oldStartAction=$env:StartAction
     $oldStartProgram=$env:StartProgram
-    $oldPatchProfileName=$env:PatchProfileName
-    $oldPostBuildEvent = $env:PostBuildEvent
 
     # Set environment variables that will be read by Microsoft common targets and perform the patch.
     $env:StartAction="Program"
     $env:StartProgram=$env:PatchTargetExe
     $env:PatchProfileName=$patchProfile
-
-    $powershellPath = (Join-Path $PsHome "powershell.exe")
-    $toolsPath = (Join-Path (Join-Path $Global:FeatureDir "..") "Tools.ps1")
-
-    # Inject post build event action into Visual Studio.
-    # Note: this may not work if props or targets imported before us makes use of this feature.
-    $env:RunPostBuildEvent="OnBuildSuccess"
-    $env:PostBuildEvent="$powershellPath -c $toolsPath;ptapply $patchProfile"
 
     # Start selected Visual Studio instance.
     vsstart $vsInstance $solutionPath
@@ -511,8 +550,6 @@ function Start-F5InVS($vsInstance, $solutionPath, $patchProfile)
     # Revert env. variable settings so we don't patch on PostBuildEvent for command line builds.
     $env:StartAction=$oldStartAction
     $env:StartProgram=$oldStartProgram
-    $env:PatchProfileName=$oldPatchProfileName
-    $env:PostBuildEvent=$oldPostBuildEvent
 }
 
 <#

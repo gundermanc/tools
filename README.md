@@ -116,8 +116,11 @@ robust way.
 - Ensure that 'Patch and Restore' from above work.
 - Run `ptF5 [instance number of VS instance to use to debug] [path to solution file] [profile name]
 
-This injects a post-build-event into your project that enables F5 debugging by running your patch profile on 'Start Debugging'
+This patches your target application with links and enables F5 debugging in Visual Studio by running
+seamless updating the target binaries each time you build. Also injects a debug action for 'Start Debugging'
 and auto-attaches the debugger.
+
+Return application to stock with `ptrevert [profile name]`
 
 NOTE: for robustness, patch makes backups of each file, takes a hash of the original files, and kills any lock processes,
 guaranteeing that patch always succeeds, and revert never breaks VS after an update.
@@ -203,7 +206,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
-- 2/13/2020 - Added 'vsuse' alias for 'vspatch', print profile names when prompted for profile, changed output formatting, option for disabling version check, title.
+- 2/13/2020 - Added 'vsuse' alias for 'vspatch', print profile names when prompted for profile, changed output formatting, option for disabling version check, title, pfF5 is now fast and uses symlinks.
 - 2/7/2020 - Fixed issue where 'nve scratch' was broken.
 - 2/6/2020 - Added 'toolhelp' command for self-documentation.
 - 12/12/2019 - Updated `vspatch` to set the Apex test framework to use the targed VS when the user makes a selection.
