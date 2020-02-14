@@ -48,6 +48,8 @@ function Get-PatchConfiguration($patchProfile)
     $content = (Get-Content $patchProfile)
     $jsonContent = $content | ConvertFrom-Json
 
+    Write-Host -ForegroundColor Cyan "Setting environment from '$patchProfile'..."
+
     # Define any given environment variables.
     $variables = $jsonContent.variables
     foreach ($file in $variables)
@@ -62,7 +64,7 @@ function Get-PatchConfiguration($patchProfile)
                 Write-Host -ForegroundColor Yellow "Variable $name has empty value"
             }
 
-            Write-Host "Setting variable $name to '$value'..."
+            Write-Host "  - Setting variable $name to '$value'..."
             Invoke-Expression "$name = `"$value`""
         }
     }
@@ -74,7 +76,7 @@ function Get-PatchConfiguration($patchProfile)
         $env:PatchSourceDir = $ExecutionContext.InvokeCommand.ExpandString($jsonContent.sourceDirectory)
     }
 
-    Write-Host "Source Directory: $env:PatchSourceDir"
+    Write-Host "  - Source Directory: $env:PatchSourceDir"
     if ([string]::IsNullOrWhiteSpace($env:PatchSourceDir) -or (-not (Test-Path $env:PatchSourceDir)))
     {
         Throw "Unspecified or inaccessible `$env:PatchSourceDir $env:PatchSourceDir"
@@ -260,7 +262,7 @@ function RevertItem($destinationFile)
     catch
     {
         ## Do this in a try catch so a failure to revert doesn't cause backup to be deleted.
-        Write-Host -ForegroundColor Red "Failed reverting $destinationFile"
+        Write-Host -ForegroundColor Red "  - Failed reverting $destinationFile"
         return $false
     }
 }
@@ -277,6 +279,8 @@ function Invoke-PatchProfile($patchProfile)
 {
     function PatchItem ($sourceFile, $destinationFile)
     {
+        $sourceFileName = [System.IO.Path]::GetFileName($sourceFile)
+        Write-Host -ForegroundColor Cyan "Applying '$sourceFileName...'"
         $backupFile = "$destinationFile.stockrevision"
         $hashFile = "$destinationFile.updatehash"
 
@@ -291,7 +295,7 @@ function Invoke-PatchProfile($patchProfile)
             # and backed up again.
             if (Test-Path $hashFile)
             {
-                Write-Host "Previously patched. Reverting..."
+                Write-Host "  - Previously patched. Reverting..."
                 if (-not (RevertItem $destinationFile))
                 {
                     Stop-LockingApp $destinationFile
@@ -326,6 +330,8 @@ function Invoke-PatchProfile($patchProfile)
             Write-Host "  - Patching $destinationFile with $sourceFile..."
             Copy-Item -Path $sourceFile -Destination $destinationFile -Force
 
+            Write-Host
+
             return $true
         }
         catch
@@ -343,7 +349,7 @@ function Invoke-PatchProfile($patchProfile)
 
     # Determine the destination directory.
     $destinationDirectory = Get-PatchTargetDirectory
-    Write-Host "Destination Directory: $destinationDirectory"
+    Write-Host "  - Destination Directory: $destinationDirectory"
 
     $files = $jsonContent.files
     foreach ($file in $files)
@@ -418,6 +424,9 @@ function Invoke-RevertPatchProfile($patchProfile)
         foreach ($property in $file.PSObject.Properties)
         {
             $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
+
+            $destinationFileName = [System.IO.Path]::GetFileName($destinationFile)
+            Write-Host -ForegroundColor Cyan "Reverting '$destinationFileName...'"
 
             if (-not (RevertItem $destinationFile))
             {
@@ -586,6 +595,8 @@ function Set-CurrentPatchProfile($patchProfile)
 
     # Save it for later.
     $env:PatchProfile = $patchProfile
+
+    Write-Host
 }
 
 <#

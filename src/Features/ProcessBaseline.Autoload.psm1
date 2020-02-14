@@ -171,13 +171,13 @@ function Stop-LockingApp($fileName)
         Throw "Expected 1 argument: profile name"
     }
 
-    Write-Host -ForegroundColor Yellow "Checking for processes locking $fileName..."
+    Write-Host -ForegroundColor Yellow "  - Checking for processes locking $fileName..."
 
     $lockingProcesses = [FileUtil]::WhoIsLocking($fileName)
     foreach ($process in $lockingProcesses)
     {
         $mainModulePath = $process.Path
-        Write-Host -ForegroundColor Yellow "Killing $mainModulePath"
+        Write-Host -ForegroundColor Yellow "  - Killing $mainModulePath"
         $process.Kill()
         $process.WaitForExit()
     }
