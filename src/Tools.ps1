@@ -5,6 +5,7 @@ $Global:PSScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definiti
 
 Import-Module "$Global:PSScriptRoot\Common\Componentization.psm1"
 
+$host.ui.RawUI.WindowTitle = "Windows Application Developer Tools"
 Write-VersionInfo
 
 Write-Host -ForegroundColor Cyan "Configuration Directory:"
