@@ -13,6 +13,12 @@ function Get-PatchProfilePath($patchProfile)
     {
         if ([string]::IsNullOrWhiteSpace($env:PatchProfile))
         {
+            Write-Host -ForegroundColor Cyan "Patch profiles:"
+            Get-PatchProfiles | Foreach-Object {
+                $fileName = $_.Name
+                Write-Host "  - $fileName"
+            }
+
             # Prompt the user for one to use for just this instance. They can use ptuse to remember it.
             Write-Host -ForegroundColor Yellow "No patch profile name argument was provided. Run 'ptuse [profile]' to remember a patch profile for this console session"
             Write-Host -Foreground Yellow "Enter a patch profile name:"
