@@ -90,10 +90,15 @@ function Get-PatchConfiguration($patchProfile)
     return $jsonContent
 }
 
-function Write-PatchSchema
-{
-    Write-Output @"
-Patch schema is as follows:"
+<#
+.SYNOPSIS
+Opens a patch profile for editing.
+
+.PARAMETER patchProfile
+Name of the patch profile to open.
+
+.EXAMPLE
+Patch schema is as follows:
 
 {
     "variables": {
@@ -113,34 +118,31 @@ variables: Strings that are expanded to PowerShell variables. Use `$env:Foo to
            
            The following are 'special' variables that light up aliases:
 
-             `$env:PatchBuildCmd - The command to build with prior to patching.
+             $env:PatchBuildCmd - The command to build with prior to patching.
 
-             `$env:PatchSourceDir - The source folder to copy bits from.
+             $env:PatchSourceDir - The source folder to copy bits from.
 
-             `$env:PatchTargetDir - The destination to patch to. You can optionally
+             $env:PatchTargetDir - The destination to patch to. You can optionally
              set this with the vspath alias or your own script.
 
-             `$env:PatchTargetExe - The main executable of the application being
-           patched.
+             $env:PatchTargetExe - The main executable of the application being
+             patched.
+
+             $env:PatchDisableVersionCheck - Disables the slow assembly binding
+             version check performed before patching .NET assemblies.
+
+             $env:PatchTargetChooseCmd - Enables customization of the 'choose app
+             to patch' function. By default, asks which install of Visual Studio.
 
 files: a dictionary of source -> destination path that are backedup and patched.
                                  Can use environment variables.
 
 commands: an array of PowerShell commands to run after the patch and unpatch.
 
-"@
-}
-
-<#
-.SYNOPSIS
-Opens a patch profile for editing.
-
-.PARAMETER patchProfile
-Name of the patch profile to open.
 #>
 function Edit-PatchProfile($patchProfile)
 {
-    Write-PatchSchema
+    Write-Host -Foreground "Run 'Get-help ptedit -Examples' for schema information."
     & notepad.exe (Get-PatchProfilePath $patchProfile)
 }
 
@@ -155,6 +157,13 @@ function Get-PatchProfiles
 
 function CheckAssemblyVersions($source, $destination)
 {
+    # No-op if the patch profile opted out.
+    if ($env:PatchDisableVersionCheck -eq $true)
+    {
+        Write-Host "  - Skipping version check, disabled by PatchDisableVersionCheck environment variable."
+        return
+    }
+
     # Do nothing if either file doesn't exist.
     if ((-not (Test-Path $source) -or (-not (Test-Path $destination))))
     {
