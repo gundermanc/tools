@@ -203,6 +203,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
+- 2/13/2020 - Added 'vsuse' alias for 'vspatch', print profile names when prompted for profile, changed output formatting, option for disabling version check, title.
 - 2/7/2020 - Fixed issue where 'nve scratch' was broken.
 - 2/6/2020 - Added 'toolhelp' command for self-documentation.
 - 12/12/2019 - Updated `vspatch` to set the Apex test framework to use the targed VS when the user makes a selection.
