@@ -24,8 +24,9 @@ function Write-Help
 {
     Write-Host "-------------------------------------------------------------------"
     Write-Host -ForegroundColor Cyan "Self-extracting application patch tool"
-    Write-Host "-------------------------------------------------------------------"
+    Write-Host
     Write-Host "By: Christian Gunderman"
+    Write-Host "-------------------------------------------------------------------"
     Write-Host
 
     Write-Host -ForegroundColor Cyan "Applies profile: $profileName"
@@ -63,6 +64,8 @@ function ConsoleLoop
 function Main
 {
     $args = Get-ClownCarArguments
+
+    $host.ui.RawUI.WindowTitle = "Self-extracting application patch tool"
 
     if ($args.Length -eq 0)
     {
