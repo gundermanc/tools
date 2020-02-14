@@ -13,6 +13,12 @@ function Get-PatchProfilePath($patchProfile)
     {
         if ([string]::IsNullOrWhiteSpace($env:PatchProfile))
         {
+            Write-Host -ForegroundColor Cyan "Patch profiles:"
+            Get-PatchProfiles | Foreach-Object {
+                $fileName = $_.Name
+                Write-Host "  - $fileName"
+            }
+
             # Prompt the user for one to use for just this instance. They can use ptuse to remember it.
             Write-Host -ForegroundColor Yellow "No patch profile name argument was provided. Run 'ptuse [profile]' to remember a patch profile for this console session"
             Write-Host -Foreground Yellow "Enter a patch profile name:"
@@ -48,6 +54,8 @@ function Get-PatchConfiguration($patchProfile)
     $content = (Get-Content $patchProfile)
     $jsonContent = $content | ConvertFrom-Json
 
+    Write-Host -ForegroundColor Cyan "Setting environment from '$patchProfile'..."
+
     # Define any given environment variables.
     $variables = $jsonContent.variables
     foreach ($file in $variables)
@@ -62,7 +70,7 @@ function Get-PatchConfiguration($patchProfile)
                 Write-Host -ForegroundColor Yellow "Variable $name has empty value"
             }
 
-            Write-Host "Setting variable $name to '$value'..."
+            Write-Host "  - Setting variable $name to '$value'..."
             Invoke-Expression "$name = `"$value`""
         }
     }
@@ -74,7 +82,7 @@ function Get-PatchConfiguration($patchProfile)
         $env:PatchSourceDir = $ExecutionContext.InvokeCommand.ExpandString($jsonContent.sourceDirectory)
     }
 
-    Write-Host "Source Directory: $env:PatchSourceDir"
+    Write-Host "  - Source Directory: $env:PatchSourceDir"
     if ([string]::IsNullOrWhiteSpace($env:PatchSourceDir) -or (-not (Test-Path $env:PatchSourceDir)))
     {
         Throw "Unspecified or inaccessible `$env:PatchSourceDir $env:PatchSourceDir"
@@ -90,10 +98,15 @@ function Get-PatchConfiguration($patchProfile)
     return $jsonContent
 }
 
-function Write-PatchSchema
-{
-    Write-Output @"
-Patch schema is as follows:"
+<#
+.SYNOPSIS
+Opens a patch profile for editing.
+
+.PARAMETER patchProfile
+Name of the patch profile to open.
+
+.EXAMPLE
+Patch schema is as follows:
 
 {
     "variables": {
@@ -113,34 +126,31 @@ variables: Strings that are expanded to PowerShell variables. Use `$env:Foo to
            
            The following are 'special' variables that light up aliases:
 
-             `$env:PatchBuildCmd - The command to build with prior to patching.
+             $env:PatchBuildCmd - The command to build with prior to patching.
 
-             `$env:PatchSourceDir - The source folder to copy bits from.
+             $env:PatchSourceDir - The source folder to copy bits from.
 
-             `$env:PatchTargetDir - The destination to patch to. You can optionally
+             $env:PatchTargetDir - The destination to patch to. You can optionally
              set this with the vspath alias or your own script.
 
-             `$env:PatchTargetExe - The main executable of the application being
-           patched.
+             $env:PatchTargetExe - The main executable of the application being
+             patched.
+
+             $env:PatchDisableVersionCheck - Disables the slow assembly binding
+             version check performed before patching .NET assemblies.
+
+             $env:PatchTargetChooseCmd - Enables customization of the 'choose app
+             to patch' function. By default, asks which install of Visual Studio.
 
 files: a dictionary of source -> destination path that are backedup and patched.
                                  Can use environment variables.
 
 commands: an array of PowerShell commands to run after the patch and unpatch.
 
-"@
-}
-
-<#
-.SYNOPSIS
-Opens a patch profile for editing.
-
-.PARAMETER patchProfile
-Name of the patch profile to open.
 #>
 function Edit-PatchProfile($patchProfile)
 {
-    Write-PatchSchema
+    Write-Host -Foreground "Run 'Get-help ptedit -Examples' for schema information."
     & notepad.exe (Get-PatchProfilePath $patchProfile)
 }
 
@@ -155,6 +165,13 @@ function Get-PatchProfiles
 
 function CheckAssemblyVersions($source, $destination)
 {
+    # No-op if the patch profile opted out.
+    if ($env:PatchDisableVersionCheck -eq $true)
+    {
+        Write-Host "  - Skipping version check, disabled by PatchDisableVersionCheck environment variable."
+        return
+    }
+
     # Do nothing if either file doesn't exist.
     if ((-not (Test-Path $source) -or (-not (Test-Path $destination))))
     {
@@ -236,7 +253,7 @@ function RevertItem($destinationFile)
         }
         else
         {
-            Write-Host -ForegroundColor Yellow "Hash file mismatch. There appears to have been an update. Skipping $destinationFile"
+            Write-Host -ForegroundColor Yellow "There appears to have been an update. Skipping reverting $destinationFile."
         }
 
         # This file may not exist if the patch script copied it over for the first time.
@@ -251,7 +268,7 @@ function RevertItem($destinationFile)
     catch
     {
         ## Do this in a try catch so a failure to revert doesn't cause backup to be deleted.
-        Write-Host -ForegroundColor Red "Failed reverting $destinationFile"
+        Write-Host -ForegroundColor Red "  - Failed reverting $destinationFile"
         return $false
     }
 }
@@ -268,17 +285,23 @@ function Invoke-PatchProfile($patchProfile)
 {
     function PatchItem ($sourceFile, $destinationFile)
     {
+        $sourceFileName = [System.IO.Path]::GetFileName($sourceFile)
+        Write-Host -ForegroundColor Cyan "Applying '$sourceFileName...'"
         $backupFile = "$destinationFile.stockrevision"
         $hashFile = "$destinationFile.updatehash"
 
         try
         {
+            # Ensure directory exists. For simplicity (laziness) unpatch won't delete directories.
+            $destinationFileDirectory = ([System.IO.Path]::GetDirectoryName($destinationFile))
+            New-Item -ItemType Directory -Force -Path $destinationFileDirectory
+
             # Item was backed up previously. Revert it.
             # This is done to ensure that files that were updated
             # and backed up again.
             if (Test-Path $hashFile)
             {
-                Write-Host "Previously patched. Reverting..."
+                Write-Host "  - Previously patched. Reverting..."
                 if (-not (RevertItem $destinationFile))
                 {
                     Stop-LockingApp $destinationFile
@@ -313,6 +336,8 @@ function Invoke-PatchProfile($patchProfile)
             Write-Host "  - Patching $destinationFile with $sourceFile..."
             Copy-Item -Path $sourceFile -Destination $destinationFile -Force
 
+            Write-Host
+
             return $true
         }
         catch
@@ -330,7 +355,7 @@ function Invoke-PatchProfile($patchProfile)
 
     # Determine the destination directory.
     $destinationDirectory = Get-PatchTargetDirectory
-    Write-Host "Destination Directory: $destinationDirectory"
+    Write-Host "  - Destination Directory: $destinationDirectory"
 
     $files = $jsonContent.files
     foreach ($file in $files)
@@ -405,6 +430,9 @@ function Invoke-RevertPatchProfile($patchProfile)
         foreach ($property in $file.PSObject.Properties)
         {
             $destinationFile = (Join-Path $destinationDirectory $ExecutionContext.InvokeCommand.ExpandString($property.Value))
+
+            $destinationFileName = [System.IO.Path]::GetFileName($destinationFile)
+            Write-Host -ForegroundColor Cyan "Reverting '$destinationFileName...'"
 
             if (-not (RevertItem $destinationFile))
             {
@@ -573,6 +601,11 @@ function Set-CurrentPatchProfile($patchProfile)
 
     # Save it for later.
     $env:PatchProfile = $patchProfile
+
+    # Update the title
+    $host.ui.RawUI.WindowTitle = "$patchProfile - Windows Application Developer Tools"
+
+    Write-Host
 }
 
 <#
