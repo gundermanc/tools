@@ -215,3 +215,4 @@ New-Alias -Name vsconfig -Value ConfigureVSInstance
 New-Alias -Name vspath -Value Start-VSInstancePath
 New-Alias -Name vscmd -Value Start-VSInstancePrompt
 New-Alias -Name vspatch -Value Set-VSPatchTarget
+New-Alias -Name vsuse -Value Set-VSPatchTarget
