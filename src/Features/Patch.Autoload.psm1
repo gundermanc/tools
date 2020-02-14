@@ -273,6 +273,10 @@ function Invoke-PatchProfile($patchProfile)
 
         try
         {
+            # Ensure directory exists. For simplicity (laziness) unpatch won't delete directories.
+            $destinationFileDirectory = ([System.IO.Path]::GetDirectoryName($destinationFile))
+            New-Item -ItemType Directory -Force -Path $destinationFileDirectory
+
             # Item was backed up previously. Revert it.
             # This is done to ensure that files that were updated
             # and backed up again.
