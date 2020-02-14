@@ -245,7 +245,7 @@ function RevertItem($destinationFile)
         }
         else
         {
-            Write-Host -ForegroundColor Yellow "Hash file mismatch. There appears to have been an update. Skipping $destinationFile"
+            Write-Host -ForegroundColor Yellow "There appears to have been an update. Skipping reverting $destinationFile."
         }
 
         # This file may not exist if the patch script copied it over for the first time.
