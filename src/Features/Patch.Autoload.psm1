@@ -150,7 +150,7 @@ commands: an array of PowerShell commands to run after the patch and unpatch.
 #>
 function Edit-PatchProfile($patchProfile)
 {
-    Write-Host -Foreground "Run 'Get-help ptedit -Examples' for schema information."
+    Write-Host -Foreground Yellow "Run 'Get-help ptedit -Examples' for schema information."
     & notepad.exe (Get-PatchProfilePath $patchProfile)
 }
 
