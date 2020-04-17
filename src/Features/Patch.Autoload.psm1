@@ -606,6 +606,22 @@ function Invoke-RunPatchProfileTarget($patchProfile)
 
 <#
 .SYNOPSIS
+Builds, and patches the target of a patch profile.
+
+.PARAMETER patchProfile
+Name of profile in scratch directory to apply.
+#>
+function Invoke-BuildAndPatchProfile($patchProfile)
+{
+    # Build project.
+    Invoke-BuildPatchProfile $patchProfile
+
+    # Patch target.
+    Invoke-PatchProfile $patchProfile
+}
+
+<#
+.SYNOPSIS
 Builds, patches, and runs the target of a patch profile.
 
 .PARAMETER patchProfile
@@ -734,6 +750,7 @@ New-Alias -Name ptrevert -Value Invoke-RevertPatchProfile
 New-Alias -Name ptF5 -Value Start-F5InVS
 New-Alias -Name ptbuild -Value Invoke-BuildPatchProfile
 New-Alias -Name ptrun -Value Invoke-RunPatchProfileTarget
+New-Alias -Name ptbuildapply -Value Invoke-BuildAndPatchProfile
 New-Alias -Name ptbuildrun -Value Invoke-BuildAndRunPatchProfile
 New-Alias -Name ptuse -Value Set-CurrentPatchProfile
 New-Alias -Name ptpack -Value New-PatchPackage
