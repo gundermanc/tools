@@ -51,6 +51,23 @@ function New-Shortcut($targetFilePath, $shortcutPath)
     $shortcut.Save()
 }
 
+function Set-Title([string]$additionalInfo)
+{
+    $title = "Windows Application Developer Tools"
+
+    if ($additionalInfo -ne $null)
+    {
+        $title = $additionalInfo + $title
+    }
+
+    if ([bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544"))
+    {
+        $title = "ADMIN - " + $title
+    }
+    
+    $host.ui.RawUI.WindowTitle = $title
+}
+
 function InstallUpdates
 {
     function DownloadAndInstallUpdate($url) {

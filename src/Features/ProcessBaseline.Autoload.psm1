@@ -324,6 +324,42 @@ function Edit-ProcessBaseline($baselineFile)
     &notepad.exe $baselineFile
 }
 
+<#
+.SYNOPSIS
+Starts a process with administrative privileges.
+
+.DESCRIPTION
+Calling with zero parameters restarts the tools prompt as admin.
+Starting with 1 parameter runs the specified command. Pass 0 or more
+additional parameters to pass arguments.
+
+.PARAMETER command
+
+#>
+function Start-AdminProcess([string]$command)
+{
+    # If unspecified command, drop into a tools prompt as admin.
+    if ([string]::IsNullOrWhiteSpace($command))
+    {
+        # Drop into a new tools prompt. Don't pass -Wait
+        # because we are creating a terminal process to
+        # replace this one.
+        Start-Process "cmd.exe" -ArgumentList ("/K", "$Global:FeatureDir\..\Tools.bat") -Verb RunAs
+        exit
+        return
+    }
+
+    if ($args.Length -gt 0)
+    {
+        echo $args
+        Start-Process $command -ArgumentList $args -Verb RunAs -Wait
+    }
+    else
+    {
+        Start-Process $command -Verb RunAs -Wait
+    }
+}
+
 New-Alias -Name pbunlock -Value Stop-LockingApp
 New-Alias -Name pbldmp -Value Write-LockingProcesses
 New-Alias -Name pbget -Value Get-ProcessBaselines
@@ -331,3 +367,4 @@ New-Alias -Name pbnew -Value New-ProcessBaseline
 New-Alias -Name pbnstop -Value Stop-NonProcessBaseline
 New-Alias -Name pbstop -Value Stop-ProcessBaseline
 New-Alias -Name pbedit -Value Edit-ProcessBaseline
+New-Alias -Name sudo -Value Start-AdminProcess

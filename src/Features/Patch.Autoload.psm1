@@ -656,7 +656,7 @@ function Set-CurrentPatchProfile($patchProfile)
     $env:PatchProfile = $patchProfile
 
     # Update the title
-    $host.ui.RawUI.WindowTitle = "$patchProfile - Windows Application Developer Tools"
+    Set-Title $patchProfile
 
     Write-Host
 }
