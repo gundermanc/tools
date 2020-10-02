@@ -55,9 +55,9 @@ function Set-Title([string]$additionalInfo)
 {
     $title = "Windows Application Developer Tools"
 
-    if ($additionalInfo -ne $null)
+    if (-not [string]::IsNullOrWhiteSpace($additionalInfo))
     {
-        $title = $additionalInfo + $title
+        $title = $additionalInfo + " - " + $title
     }
 
     if ([bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544"))
