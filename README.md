@@ -180,6 +180,7 @@ to help get you unblocked if a build executable is locking a file.
 - pbnstop [profile]: Stops all executables except those reference by the given profile or 'Default' profile if not specified.
 - pbstop [profile]: Stops all executables referenced by the given profile or 'Default' profile if not specified.
 - pbedit [profile]: Opens a named profile for manual editing.
+- sudo [command] [args]: Opens tools prompt as admin or runs a command as admin.
 
 #### Reliability Tools
 Defines some aliases for automating investigation of build failures and crashes.
@@ -206,6 +207,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
+- 10/2/2020 - Added 'sudo' alias.
 - 2/26/2020 - Fixed installation failure if 'ToolsScratch' doesn't exist.
 - 2/13/2020 - Added 'vsuse' alias for 'vspatch', print profile names when prompted for profile, changed output formatting, option for disabling version check, title, pfF5 is now fast and uses symlinks.
 - 2/7/2020 - Fixed issue where 'nve scratch' was broken.
