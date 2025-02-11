@@ -187,6 +187,9 @@ function CheckAssemblyVersions($source, $destination)
 
     Write-Host "  - Checking that assembly versions match..."
 
+    # Windows PowerShell and PowerShell 7 have different executables
+    # with Windows PowerShell using powershell.exe and 7 using pwsh.exe.
+    # Check the current major version to see if we're using the new version.
     if ($PSVersionTable.PSVersion.Major -ge 6) {
         $powershellPath = (Join-Path $PsHome "pwsh.exe")
     } else {

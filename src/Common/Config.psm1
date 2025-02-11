@@ -16,7 +16,7 @@ $ConfigurationValues =
     "DisableConsole" = $true
     "InstallationPath" = New-InstallationPath
     "IsInstalled" = $false
-    "Version" = "0.76"
+    "Version" = "0.77"
 }
 
 $RegistryRootKeyPath = "HKCU:Software\Tools"
