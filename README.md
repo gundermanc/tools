@@ -207,6 +207,7 @@ Aliases for launching Visual Studio installs developer command prompts.
 - vspatch [instance]: Selects an instance of VS as the target application for patching or running Apex tests.
 
 ## ChangeLog
+- 2/11/2025 - Accepted contribution to fix pathing when using PowerShell 7
 - 9/18/2023 - Accepted contribution to make Get-GitRoot work with Git worktrees.
 - 10/2/2020 - Added 'sudo' alias.
 - 2/26/2020 - Fixed installation failure if 'ToolsScratch' doesn't exist.
